@@ -1,0 +1,117 @@
+/* ============================================================
+   LOCAL PROGRESS — checkmarks, settings and the optional account,
+   all kept in this phone's localStorage. Every checkmark is saved
+   here first; syncing to the Google Sheet happens afterwards.
+
+   Progress = { itemId: { done: true|false, t: time-in-ms } }
+   When two copies disagree, the newer change wins; a tie counts
+   as done.
+   ============================================================ */
+
+const KEYS = {
+  progress: 'br27.progress',
+  pending: 'br27.pending',
+  account: 'br27.account',
+  settings: 'br27.settings',
+};
+
+const DEFAULT_SETTINGS = { translation: 'esv', showLinks: true };
+
+function readJSON(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw === null ? fallback : JSON.parse(raw);
+  } catch (err) {
+    return fallback;
+  }
+}
+
+function writeJSON(key, value) {
+  localStorage.setItem(key, JSON.stringify(value));
+}
+
+function isPlainObject(v) {
+  return v !== null && typeof v === 'object' && !Array.isArray(v);
+}
+
+function mergeProgress(a, b) {
+  const out = Object.assign({}, a);
+  Object.keys(b || {}).forEach(id => {
+    const mine = out[id], theirs = b[id];
+    if (!mine || theirs.t > mine.t || (theirs.t === mine.t && theirs.done)) out[id] = theirs;
+  });
+  return out;
+}
+
+function getProgress() {
+  const p = readJSON(KEYS.progress, {});
+  return isPlainObject(p) ? p : {};
+}
+
+function replaceProgress(p) {
+  writeJSON(KEYS.progress, p);
+}
+
+function getPending() {
+  const p = readJSON(KEYS.pending, {});
+  return isPlainObject(p) ? p : {};
+}
+
+function setDone(id, done, now = Date.now()) {
+  const entry = { done, t: now };
+  const progress = getProgress();
+  progress[id] = entry;
+  replaceProgress(progress);
+  const pending = getPending();
+  pending[id] = entry;
+  writeJSON(KEYS.pending, pending);
+  return progress;
+}
+
+// Drop the pending changes the server has now seen (anything newer stays queued).
+function clearPending(sent) {
+  const pending = getPending();
+  Object.keys(sent || {}).forEach(id => {
+    if (pending[id] && pending[id].t <= sent[id].t) delete pending[id];
+  });
+  writeJSON(KEYS.pending, pending);
+}
+
+function getSettings() {
+  const s = readJSON(KEYS.settings, {});
+  return Object.assign({}, DEFAULT_SETTINGS, isPlainObject(s) ? s : {});
+}
+
+function saveSettings(partial) {
+  writeJSON(KEYS.settings, Object.assign(getSettings(), partial));
+}
+
+function getAccount() {
+  const a = readJSON(KEYS.account, null);
+  return isPlainObject(a) && typeof a.username === 'string' && typeof a.token === 'string' ? a : null;
+}
+
+function saveAccount(a) {
+  writeJSON(KEYS.account, { username: a.username, token: a.token });
+}
+
+function clearAccount() {
+  localStorage.removeItem(KEYS.account);
+}
+
+// Back to a fresh, no-account phone. Settings (translation, links) stay.
+function resetLocal() {
+  [KEYS.progress, KEYS.pending, KEYS.account].forEach(k => localStorage.removeItem(k));
+}
+
+function isDone(progress, id) {
+  return !!(progress[id] && progress[id].done);
+}
+
+function catchUpIds(progress, today) {
+  return allItemIdsBefore(today).filter(id => !isDone(progress, id));
+}
+
+function weekDoneCount(progress, week) {
+  return weekItemIds(week).filter(id => isDone(progress, id)).length;
+}
