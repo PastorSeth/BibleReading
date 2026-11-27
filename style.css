@@ -186,6 +186,9 @@ details[open] summary .count { color: var(--ink); font-weight: 700; }
 /* ---------- Extras ---------- */
 .extras section { margin-top: 4px; }
 main.extras > p:first-child { margin-top: 16px; }
+.about h2 { margin-top: 26px; }
+.about section:first-child h2 { margin-top: 16px; }
+.about p { max-width: 62ch; }
 .extras p { margin-bottom: 10px; }
 .about-list { padding-left: 20px; margin: 0 0 10px; }
 .about-list li { margin-bottom: 8px; }

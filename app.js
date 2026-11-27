@@ -496,13 +496,22 @@ function renderExtras(now) {
 function renderAbout() {
   return h('div', { class: 'screen' },
     h('header', null, h('div', { class: 'bar' }, backLink()), h('h1', { text: 'About this reading plan' })),
-    h('main', { class: 'extras' },
-      h('p', { text: 'One year, five days a week. Each weekday has three readings to read in your own Bible:' }),
-      h('ul', { class: 'about-list' },
-        h('li', null, h('b', { text: 'New Testament: ' }), 'one chapter a day, from the Foundations New Testament plan by Replicate (replicate.org). All 260 chapters of the New Testament in a year.'),
-        h('li', null, h('b', { text: 'Old Testament: ' }), 'one reading a day from the Foundations (F260) Old Testament readings, from Genesis to Malachi.'),
-        h('li', null, h('b', { text: 'Psalms and Proverbs: ' }), 'a Psalm on Monday, Wednesday and Friday (all 150, with Psalm 119 in seven parts), and a short passage of Proverbs on Tuesday and Thursday.')),
-      h('p', { text: 'Weekends are left open for catching up or resting. The plan starts again on the first Monday of January each year, and each year keeps its own checkmarks.' })));
+    h('main', { class: 'extras about' },
+      h('section', null, h('h2', { text: 'The M260 Reading Plan' }),
+        h('p', { text: 'I love the Bible, but I also have crippling ADHD, and I’ve always struggled to find a reading plan that works with my brain. So I made one.' }),
+        h('p', { text: 'The M260 combines my favorite parts of two plans. It has the organized structure of the M’Cheyne plan, reading from different parts of the Bible each day, and the steady pace and outline of the F260 plan from Replicate Ministries. I believe the result is the perfect Bible reading plan.' }),
+        h('p', { text: 'Each weekday has three short readings: one from the New Testament, one from the Old Testament, and a Psalm or Proverbs. That’s 260 days a year, Monday to Friday. Weekends are left open for catching up or resting, and the plan starts again on the first Monday of January each year.' })),
+      h('section', null, h('h2', { text: 'Old Testament' }),
+        h('p', { text: 'Following the F260 outline, the Old Testament readings take about one chapter a day (with a few partial or combined chapters) and walk through the story of the Old Testament in the order it happened, from Genesis to Malachi.' }),
+        h('p', { text: 'To keep that one-chapter-a-day pace, the Replicate Ministries team carefully left some chapters and books out, so the plan hits the meatiest chapters and helps you take in the big story of the Old Testament every year.' })),
+      h('section', null, h('h2', { text: 'New Testament' }),
+        h('p', { text: 'The New Testament readings go through every chapter of the New Testament, one a day, in roughly the order things happened and were written. Acts is woven in with the letters Paul and the other apostles wrote along the way.' }),
+        h('p', { text: 'The one exception is the Gospels. Instead of reading all four back to back at the start, you read one Gospel each quarter: Luke in January, Mark in May, John in September and Matthew to finish the year.' })),
+      h('section', null, h('h2', { text: 'Psalms and Proverbs' }),
+        h('p', { text: 'The third reading each day comes from the Bible’s wisdom books:' }),
+        h('ul', { class: 'about-list' },
+          h('li', null, h('b', { text: 'Monday, Wednesday and Friday: ' }), 'a Psalm. You read all 150 Psalms in order over the year. Psalm 119, the longest, is split into seven parts.'),
+          h('li', null, h('b', { text: 'Tuesday and Thursday: ' }), 'a short passage from Proverbs, about nine verses. You read the whole book over the year, a little at a time.')))));
 }
 
 function renderPrint(year, now) {

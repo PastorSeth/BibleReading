@@ -327,8 +327,10 @@ test('app: extras is a menu that opens About and the printable plan', () => {
 test('app: about page', () => {
   const el = renderAbout();
   assertEqual(el.querySelector('h1').textContent, 'About this reading plan');
-  assertIncludes(el.textContent, 'Replicate');
-  assertIncludes(el.textContent, 'first Monday of January');
+  assertEqual([...el.querySelectorAll('main h2')].map(x => x.textContent),
+    ['The M260 Reading Plan', 'Old Testament', 'New Testament', 'Psalms and Proverbs']);
+  ['M’Cheyne', 'F260', 'Replicate Ministries', 'first Monday of January', 'Luke', 'Matthew', 'Psalm 119'].forEach(t => assertIncludes(el.textContent, t));
+  assert(!/every book of the Old Testament/i.test(el.textContent), 'the OT readings skip some books');
   assertEqual(el.querySelector('a.back').getAttribute('href'), '#/extras');
 });
 
