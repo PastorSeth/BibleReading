@@ -11,7 +11,7 @@
    Sheet and to Biblia.com always go straight to the network.
    ============================================================ */
 
-const CACHE_NAME = 'bible-reading-2027-v17';
+const CACHE_NAME = 'bible-reading-2027-v19';
 
 const APP_SHELL = [
   './',
@@ -28,8 +28,8 @@ const APP_SHELL = [
   'icons/icon-192.png',
   'icons/icon-512.png',
   'icons/apple-touch-icon.png',
-  'fonts/AtkinsonHyperlegible-Regular.woff2',
-  'fonts/AtkinsonHyperlegible-Bold.woff2',
+  'fonts/AlegreyaSans-Regular.woff2',
+  'fonts/AlegreyaSans-Bold.woff2',
   'fonts/Vollkorn-Bold.woff2',
 ];
 

@@ -3,7 +3,7 @@ test('sw: app shell lists every app file', async () => {
   assert(/const CACHE_NAME = 'bible-reading-2027-v\d+';/.test(sw), 'CACHE_NAME is versioned');
   ['./', 'index.html', 'style.css', 'readings.js', 'plan.js', 'links.js', 'store.js', 'sync-config.js', 'sync.js',
     'app.js', 'manifest.json', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png',
-    'fonts/AtkinsonHyperlegible-Regular.woff2', 'fonts/AtkinsonHyperlegible-Bold.woff2', 'fonts/Vollkorn-Bold.woff2']
+    'fonts/AlegreyaSans-Regular.woff2', 'fonts/AlegreyaSans-Bold.woff2', 'fonts/Vollkorn-Bold.woff2']
     .forEach(f => assert(sw.includes(`'${f}'`), `service worker should cache ${f}`));
 });
 
@@ -69,7 +69,7 @@ test('tick: unticking flashes ink, then clears to paper', async () => {
   assertEqual((await tickAt(180, false)).bg, 'rgb(231, 231, 226)');
 });
 
-test('type: big type is Vollkorn, small text stays Atkinson', async () => {
+test('type: big type is Vollkorn, small text is Alegreya Sans', async () => {
   const f = document.createElement('iframe');
   f.src = 'tick-frame.html';
   document.body.appendChild(f);
@@ -78,8 +78,8 @@ test('type: big type is Vollkorn, small text stays Atkinson', async () => {
   d.body.insertAdjacentHTML('beforeend', '<h1>Wednesday</h1><h2>This week</h2><div class="ref">Luke 3</div><div class="track">New Testament</div>');
   const fam = sel => getComputedStyle(d.querySelector(sel)).fontFamily;
   ['h1', 'h2', '.ref'].forEach(sel => assert(fam(sel).startsWith('Vollkorn'), `${sel} uses ${fam(sel)}`));
-  assert(fam('.track').startsWith('"Atkinson Hyperlegible"'), `.track uses ${fam('.track')}`);
-  ['h1', 'h2', '.ref'].forEach(sel => assertEqual(getComputedStyle(d.querySelector(sel)).fontVariantNumeric, 'lining-nums',
+  assert(fam('.track').startsWith('"Alegreya Sans"'), `.track uses ${fam('.track')}`);
+  ['h1', 'h2', '.ref', '.track'].forEach(sel => assertEqual(getComputedStyle(d.querySelector(sel)).fontVariantNumeric, 'lining-nums',
     `${sel} should use standard numbers so "Psalm 11" can't read as "Psalm II"`));
   f.remove();
 });
