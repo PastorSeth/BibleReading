@@ -144,6 +144,9 @@ function catchUpDays(progress, today) {
   return new Set(catchUpIds(progress, today).map(id => id.replace(/-(nt|ot|ps|pr)$/, ''))).size;
 }
 
-function weekDoneCount(progress, year, week) {
-  return weekItemIds(year, week).filter(id => isDone(progress, id)).length;
+// Days in a week with every passage read (a "reading" = one day's set).
+function weekDaysDone(progress, year, week) {
+  let n = 0;
+  for (let d = 1; d <= 5; d++) if (readingsFor(year, week, d).every(r => isDone(progress, r.id))) n++;
+  return n;
 }

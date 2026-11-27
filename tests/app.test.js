@@ -60,8 +60,9 @@ test('app: weekend, before and after', () => {
   assertIncludes(sat, 'Luke 6'); // a peek at Monday
   assertIncludes(renderToday(new Date(2027, 0, 2), {}, SETTINGS, NO_SYNC).textContent, 'January 4');
   assertIncludes(renderToday(new Date(2028, 0, 1), {}, SETTINGS, NO_SYNC).textContent, 'Starts Monday, January 3');
-  const after = renderToday(new Date(2028, 11, 30), done('2028-w01d1-nt', '2027-w01d1-ot'), SETTINGS, NO_SYNC).textContent;
-  assertIncludes(after, '1 of 780');
+  const after = renderToday(new Date(2028, 11, 30),
+    done('2028-w01d1-nt', '2028-w01d1-ot', '2028-w01d1-ps', '2028-w01d2-nt', '2027-w01d3-nt', '2027-w01d3-ot', '2027-w01d3-ps'), SETTINGS, NO_SYNC).textContent;
+  assertIncludes(after, '1 of 260'); // only 2028's fully read days count
   assertIncludes(after, 'Monday, January 1');
 });
 
@@ -99,7 +100,7 @@ test('app: many partners use initials and +N', () => {
   const row = rowFor(el, 'Luke 1');
   assertEqual([...row.querySelectorAll('.who')].map(w => w.textContent), ['A', 'M', 'J', '+1']);
   assert(el.querySelector('.partner-switch'), 'switch shown with 2+ partners');
-  assertIncludes(el.textContent, 'Anna 1 of 15');
+  assertIncludes(el.textContent, 'You 0 of 5, Anna 0 of 5');
 });
 
 test('app: partner names are text, not markup', () => {
@@ -124,12 +125,12 @@ test('app: week view', () => {
 });
 
 test('app: plan view', () => {
-  const el = renderPlan(2027, new Date(2027, 0, 13), done('2027-w01d1-nt'));
+  const el = renderPlan(2027, new Date(2027, 0, 13), done('2027-w01d1-nt', '2027-w01d1-ot', '2027-w01d1-ps', '2027-w01d2-nt'));
   const weeks = el.querySelectorAll('details');
   assertEqual(weeks.length, 52);
   assertEqual([...weeks].filter(d => d.open).length, 1);
   assert(weeks[1].open, 'the current week starts open');
-  assertIncludes(weeks[0].textContent, '1 of 15');
+  assertIncludes(weeks[0].textContent, '1 of 5');
 });
 
 test('app: plan year switch', () => {
@@ -292,3 +293,10 @@ test('app: weekend catch-up list starts with the newest week', () => {
 test("app: the plan page counts a day's passages as one reading", () => {
   assertIncludes(renderPlan(2027, new Date(2027, 0, 13), {}).querySelector('.seq').textContent, '260 readings, Monday to Friday');
 });
+
+test('app: catch me up counts days', () => withEndpoint('', '', () => {
+  const sync = NO_SYNC;
+  // render() passes catchUpDays: Wednesday of week 1 with nothing read is 2 days behind
+  assertEqual(catchUpDays({}, new Date(2027, 0, 6, 9)), 2);
+  assertEqual(renderAccount(SETTINGS, null, sync, 2).querySelector('button.catch-me-up').textContent, 'Mark 2 readings as read');
+}));

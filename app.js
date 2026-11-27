@@ -6,7 +6,6 @@
    ============================================================ */
 
 const PATTERNS = ['pat-dots', 'pat-diag', 'pat-lines'];
-const TOTAL_READINGS = 780;
 const READING_DAYS = 260; // a "reading" in counts the person sees = one day's set of passages
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -179,8 +178,8 @@ function weekGrid(year, week, now, progress, partners) {
   ]);
 
   const counts = partners.length >= 2
-    ? h('p', { class: 'counts', text: [`You ${weekDoneCount(progress, year, week)} of 15`]
-      .concat(partners.map(p => `${p.name} ${weekDoneCount(p.progress, year, week)} of 15`)).join(', ') })
+    ? h('p', { class: 'counts', text: [`You ${weekDaysDone(progress, year, week)} of 5`]
+      .concat(partners.map(p => `${p.name} ${weekDaysDone(p.progress, year, week)} of 5`)).join(', ') })
     : null;
   const picker = partners.length >= 2
     ? h('label', { class: 'switch-label' }, 'Showing ',
@@ -237,9 +236,10 @@ function renderToday(now, progress, settings, syncState) {
     return root;
   }
   if (day.status === 'after') {
-    const read = Object.keys(progress).filter(id => id.startsWith(`${day.year}-`) && isDone(progress, id)).length;
+    let read = 0;
+    for (let w = 1; w <= WEEKS; w++) read += weekDaysDone(progress, day.year, w);
     append(root.querySelector('header'), h('h1', { text: 'The year is done' }),
-      h('p', { class: 'seq', text: `You read ${read} of ${TOTAL_READINGS} readings in ${day.year}.` }));
+      h('p', { class: 'seq', text: `You read ${read} of ${READING_DAYS} readings in ${day.year}.` }));
     append(main, h('p', null, `The plan starts again ${longDate(planStart(day.year + 1))}.`),
       h('p', { class: 'catch' }, h('a', { href: `#/plan/${day.year}`, text: 'Look back over the year' })));
     return root;
@@ -305,7 +305,7 @@ function renderPlan(year, now, progress) {
       readingsFor(year, w, d).map(r => h('span', { class: `${trackClass(r.track)}${isDone(progress, r.id) ? ' done' : ''}`, text: displayRef(r.ref) }))));
     append(main, h('details', { open: w === openWeek },
       h('summary', null, h('b', { text: `Week ${w}` }), h('span', { class: 'muted', text: `${shortDate(dateFor(year, w, 1))} to ${shortDate(dateFor(year, w, 5))}` }),
-        h('span', { class: 'count', text: `${weekDoneCount(progress, year, w)} of 15` })),
+        h('span', { class: 'count', text: `${weekDaysDone(progress, year, w)} of 5` })),
       h('ul', { class: 'plan-days' }, days),
       h('a', { class: 'open-week', href: `#/week/${year}/${w}`, text: `Open week ${w}` })));
   }
@@ -504,7 +504,7 @@ function render() {
     week: () => renderWeek(route.year || currentYear(now), route.week, now, progress, settings, state),
     plan: () => renderPlan(route.year || currentYear(now), now, progress),
     catchup: () => renderCatchUp(now, progress, settings, state),
-    account: () => renderAccount(settings, getAccount(), state, catchUpIds(progress, now).length, confirmingCatchUp),
+    account: () => renderAccount(settings, getAccount(), state, catchUpDays(progress, now), confirmingCatchUp),
   };
   const focusedId = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.id : null;
   const previewing = /[?&]date=/.test(location.search);

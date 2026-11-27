@@ -81,10 +81,11 @@ test('store: catch-up', () => {
   assertEqual(catchUpIds({ '2027-w01d1-nt': { done: false, t: 2 } }, new Date(2027, 0, 6)).length, 6);
 });
 
-test('store: weekDoneCount', () => {
-  const p = { '2027-w02d1-nt': { done: true, t: 1 }, '2027-w02d3-ps': { done: true, t: 1 },
-    '2027-w02d4-pr': { done: false, t: 2 }, 'w02-mv': { done: true, t: 1 }, '2027-w01d1-nt': { done: true, t: 1 } };
-  assertEqual(weekDoneCount(p, 2027, 2), 2);
+test('store: weekDaysDone counts only fully read days', () => {
+  const p = { '2027-w02d1-nt': { done: true, t: 1 }, '2027-w02d1-ot': { done: true, t: 1 }, '2027-w02d1-ps': { done: true, t: 1 },
+    '2027-w02d3-ps': { done: true, t: 1 }, '2027-w02d4-pr': { done: false, t: 2 }, '2027-w01d1-nt': { done: true, t: 1 } };
+  assertEqual(weekDaysDone(p, 2027, 2), 1);
+  assertEqual(weekDaysDone({}, 2027, 2), 0);
 });
 
 test('store: resetLocal keeps settings', () => withCleanStore(() => {
