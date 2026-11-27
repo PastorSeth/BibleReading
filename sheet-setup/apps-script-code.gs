@@ -29,18 +29,27 @@ const MAX_TOKENS = 10;
 const ITEM_ID = /^w\d\dd[1-5]-(nt|ot|ps|pr)$/;
 
 function doPost(e) {
-  let result;
   const lock = LockService.getScriptLock();
   try {
     lock.waitLock(10000);
+  } catch (err) {
+    return respond(fail('busy')); // too many people saving at once; the app retries
+  }
+  let result;
+  try {
     let body = null;
     try { body = JSON.parse(e.postData.contents); } catch (err) { body = null; }
     result = handle(body);
   } catch (err) {
-    result = { ok: false, error: 'busy' };
+    console.error(err); // shows up under Executions in the Apps Script editor
+    result = fail('server_error');
   } finally {
-    try { lock.releaseLock(); } catch (err) { /* lock was never taken */ }
+    try { lock.releaseLock(); } catch (err) { /* already released */ }
   }
+  return respond(result);
+}
+
+function respond(result) {
   return ContentService.createTextOutput(JSON.stringify(result))
     .setMimeType(ContentService.MimeType.JSON);
 }
@@ -186,6 +195,9 @@ function signup(body) {
     partners: '', failedTries: 0, lockedUntil: 0, created: Date.now() };
   const token = issueToken(user);
   writeRow('Users', USER_HEADERS, user);
+  // A username can be re-used after Seth deletes an account; never inherit old checkmarks.
+  const oldProgress = readRows('Progress', PROGRESS_HEADERS).filter(function (r) { return r.key === key; })[0];
+  if (oldProgress) writeRow('Progress', PROGRESS_HEADERS, { _row: oldProgress._row, key: key, progress: '', updated: Date.now() });
   return { ok: true, username: username, token: token };
 }
 
@@ -200,9 +212,11 @@ function signin(body) {
   if (!pin) return fail('invalid_pin');
 
   if (!user.pinHash) {
-    // Seth cleared this PIN: the PIN typed now becomes the new one.
+    // Seth cleared this PIN: the PIN typed now becomes the new one, and every
+    // phone that was signed in before is signed out.
     user.salt = Utilities.getUuid();
     user.pinHash = hashPin(user.salt, pin);
+    user.tokens = '';
   } else if (hashPin(user.salt, pin) !== user.pinHash) {
     const tries = (Number(user.failedTries) || 0) + 1;
     user.failedTries = tries >= MAX_TRIES ? 0 : tries;

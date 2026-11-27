@@ -8,6 +8,7 @@
    ============================================================ */
 
 let fetchImpl = null;
+let API_TIMEOUT_MS = 20000; // give up on a request after 20 seconds
 let syncState = { status: 'off', partners: [], requests: [] };
 const syncListeners = [];
 let syncInFlight = null;
@@ -30,7 +31,9 @@ function onSyncChange(fn) {
 }
 
 function setSyncState(patch) {
-  syncState = Object.assign({}, syncState, patch);
+  const next = Object.assign({}, syncState, patch);
+  if (JSON.stringify(next) === JSON.stringify(syncState)) return; // nothing changed
+  syncState = next;
   syncListeners.forEach(fn => fn(syncState));
 }
 
@@ -42,11 +45,17 @@ function hasPending() {
 async function api(action, fields) {
   try {
     const doFetch = fetchImpl || ((url, opts) => window.fetch(url, opts));
-    const res = await doFetch(SYNC_ENDPOINT, {
+    const controller = new AbortController();
+    let timer;
+    const timeout = new Promise((_, reject) => {
+      timer = setTimeout(() => { controller.abort(); reject(new Error('timeout')); }, API_TIMEOUT_MS);
+    });
+    const res = await Promise.race([doFetch(SYNC_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(Object.assign({ action }, fields)),
-    });
+      signal: controller.signal,
+    }), timeout]).finally(() => clearTimeout(timer));
     if (!res.ok) return { ok: false, error: 'network' };
     const data = JSON.parse(await res.text());
     return data && typeof data === 'object' ? data : { ok: false, error: 'network' };
@@ -59,8 +68,8 @@ function handleSyncError(res) {
   if (res.error === 'bad_token') {
     clearAccount();
     setSyncState({ status: 'signed-out-expired', partners: [], requests: [] });
-  } else if (hasPending()) {
-    setSyncState({ status: 'offline' });
+  } else {
+    setSyncState({ status: hasPending() ? 'offline' : 'synced' });
   }
   return syncState;
 }
@@ -72,16 +81,20 @@ async function runSync(uploadAll) {
     return syncState;
   }
   const auth = { username: account.username, token: account.token };
+  // If the person signed out (or in as someone else) while we waited, drop this result.
+  const stillSameAccount = () => { const a = getAccount(); return !!a && a.token === auth.token; };
 
   const changes = uploadAll ? getProgress() : getPending();
   if (Object.keys(changes).length) {
     const saved = await api('save', Object.assign({ changes }, auth));
+    if (!stillSameAccount()) return syncState;
     if (!saved.ok) return handleSyncError(saved);
     replaceProgress(mergeProgress(getProgress(), saved.progress || {}));
     clearPending(changes);
   }
 
   const loaded = await api('load', auth);
+  if (!stillSameAccount()) return syncState;
   if (!loaded.ok) return handleSyncError(loaded);
   replaceProgress(mergeProgress(getProgress(), loaded.progress || {}));
   setSyncState({
@@ -134,6 +147,8 @@ function signIn(username, pin) {
 }
 
 async function signOut() {
+  clearTimeout(syncTimer);
+  while (syncInFlight) await syncInFlight; // let a running sync finish first
   const account = getAccount();
   if (account) await api('signout', { username: account.username, token: account.token });
   resetLocal();

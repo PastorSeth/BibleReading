@@ -37,7 +37,7 @@ It isn't a Bible app and doesn't show scripture text. It tells you what to open 
 
 - Works fully with no account. Checkmarks are saved on the phone.
 - Optional username + PIN account syncs to a Google Sheet. There's a "Forgot your PIN?" email link to Seth.
-- Screens: Today, Week, Plan (all 52 weeks), Catch up, Account/settings (translation, show online links).
+- Screens: Today, Week, Plan (all 52 weeks), Catch up, Account/settings (show or hide online links; links are always ESV).
 - Must cost $0 to run, and work offline and on iPhone and Android.
 
 ## Brand Commitments

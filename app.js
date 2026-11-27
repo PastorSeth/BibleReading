@@ -31,6 +31,7 @@ const ERROR_MESSAGES = {
   bad_request: "You can't add yourself.",
   bad_token: 'Please sign in again.',
   busy: 'The server is busy. Try again in a moment.',
+  server_error: 'Something went wrong on the server. Your checkmarks are saved on this phone.',
   network: "Couldn't reach the server. Your checkmarks are saved on this phone.",
 };
 
@@ -119,7 +120,7 @@ function partnerTags(partners, id) {
 function topBar(syncState) {
   const status = syncState && syncState.status;
   let marker = null;
-  if (status === 'pending' || status === 'offline') {
+  if (status === 'offline') {
     marker = h('span', { class: 'sync' }, icon('clock'), 'Not synced yet');
   } else if (status === 'signed-out-expired') {
     marker = h('a', { class: 'sync', href: '#/account' }, 'Please sign in again');
@@ -382,6 +383,16 @@ function appNow(search, real = new Date()) {
   return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), real.getHours(), real.getMinutes());
 }
 
+function previewBanner(now) {
+  return h('p', { class: 'preview-note' }, `Previewing ${longDate(now)}. Checkmarks made here are real. `,
+    h('a', { href: './', text: 'Back to today' }));
+}
+
+// True when someone has started typing in a form (so a re-render would wipe it).
+function formHasValues(root) {
+  return [...root.querySelectorAll('form input')].some(i => i.type !== 'checkbox' && i.type !== 'hidden' && i.value !== '');
+}
+
 let renderTimer = null;
 
 function render() {
@@ -398,7 +409,8 @@ function render() {
     account: () => renderAccount(settings, getAccount(), state),
   };
   const focusedId = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.id : null;
-  app.replaceChildren(screens[route.name](), tabBar(route, now));
+  const previewing = /[?&]date=/.test(location.search);
+  app.replaceChildren(...[previewing ? previewBanner(now) : null, screens[route.name](), tabBar(route, now)].filter(Boolean));
   if (focusedId) {
     const again = app.querySelector(`.tick[data-id="${focusedId}"]`);
     if (again) again.focus();
@@ -479,9 +491,10 @@ function boot() {
   });
 
   window.addEventListener('hashchange', () => { render(); window.scrollTo(0, 0); });
-  onSyncChange(() => { if (!formFocused()) render(); });
+  const safeRender = () => { if (!formFocused() && !formHasValues(app)) render(); };
+  onSyncChange(safeRender);
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') { render(); scheduleSync(); }
+    if (document.visibilityState === 'visible') { safeRender(); scheduleSync(); }
   });
   window.addEventListener('online', scheduleSync);
 

@@ -129,3 +129,32 @@ test('sync: off when no endpoint', async () => {
     SYNC_ENDPOINT = endpoint;
   }
 });
+
+test('sync: a failed load after a good save shows synced, not stuck pending', () => withFakeServer(
+  async body => (body.action === 'save' ? reply({ ok: true, progress: body.changes }) : { ok: true, status: 200, text: async () => '<html>' }),
+  async () => {
+    saveAccount({ username: 'Seth', token: 'tok' });
+    setDone('w01d1-nt', true, 10);
+    setSyncState({ status: 'pending' });
+    await syncNow();
+    assertEqual(getPending(), {});
+    assertEqual(getSyncState().status, 'synced');
+  }));
+
+test('sync: a request that never answers times out as "network"', async () => {
+  const saved = API_TIMEOUT_MS;
+  API_TIMEOUT_MS = 50;
+  try {
+    await withFakeServer(() => new Promise(() => {}), async () => {
+      assertEqual(await api('load', {}), { ok: false, error: 'network' });
+    });
+  } finally { API_TIMEOUT_MS = saved; }
+});
+
+test('sync: listeners only hear real changes', () => {
+  let n = 0;
+  onSyncChange(() => { n++; });
+  const before = getSyncState();
+  setSyncState({ status: before.status, partners: before.partners, requests: before.requests });
+  assertEqual(n, 0);
+});

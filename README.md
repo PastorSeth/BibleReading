@@ -49,7 +49,7 @@ With `SYNC_ENDPOINT` empty (how it ships), there are no accounts. Everyone's che
 9. Open `sync-config.js` and paste it between the quotes: `let SYNC_ENDPOINT = 'https://script.google.com/macros/s/…/exec';`
 10. Bump `CACHE_NAME` in `service-worker.js` (see below) and upload to GitHub.
 
-The script creates two tabs the first time someone signs up:
+The script creates two tabs the first time someone signs up. **Don't create or rename these tabs yourself**: the script sets them up as plain text, so a username like "007" isn't turned into the number 7.
 
 - **Users:** one row per account. PINs are stored scrambled (salted SHA-256), never as typed.
 - **Progress:** each person's checkmarks, stored compactly.
@@ -68,9 +68,23 @@ Leave it empty to hide the link. Anything you put here is visible to anyone who 
 
 ### Resetting someone's PIN
 
-Open the sheet's **Users** tab, find their row, and clear the cell in the **pinHash** column. The next time they sign in, whatever PIN they type becomes their new PIN.
+Open the sheet's **Users** tab, find their row, and clear the cell in the **pinHash** column. The next time they sign in, whatever PIN they type becomes their new PIN, and every other phone signed in to that account is signed out (their checkmarks stay on those phones).
+
+Do this soon after they ask: until they sign in, whoever signs in first with that username sets the PIN.
+
+### Signing someone out everywhere (a lost phone)
+
+In the **Users** tab, clear the cell in the **tokens** column on their row. Every phone signed in to that account is signed out; the person signs back in with their PIN.
+
+### Deleting an account
+
+Delete the person's row in **both** tabs (**Users** and **Progress**). If someone later signs up with the same username, they start with no checkmarks either way.
 
 After 5 wrong PINs, an account is locked for 15 minutes.
+
+### If something goes wrong on the server
+
+The app shows "Something went wrong on the server" and keeps everyone's checkmarks on their phones. To see what happened, open the Apps Script editor and look under **Executions**.
 
 ### Updating the script later
 

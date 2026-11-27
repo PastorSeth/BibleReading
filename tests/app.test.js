@@ -176,3 +176,22 @@ test('app: screens never show "null" or "undefined"', () => {
       .forEach(el => assert(!/\bnull\b|\bundefined\b/.test(el.textContent), `${d.toDateString()}: ${el.textContent.match(/.{0,30}(null|undefined).{0,10}/)}`));
   }));
 });
+
+test('app: the sync marker only shows when the sheet could not be reached', () => {
+  const pending = renderToday(new Date(2027, 0, 4, 8), {}, SETTINGS, { status: 'pending', partners: [], requests: [] });
+  assert(!pending.textContent.includes('Not synced'), 'no flash after every tick');
+});
+
+test('app: preview banner', () => {
+  const el = previewBanner(new Date(2027, 0, 4));
+  assertIncludes(el.textContent, 'Previewing Monday, January 4');
+  assertEqual(el.querySelector('a').getAttribute('href'), './');
+});
+
+test('app: formHasValues', () => {
+  const box = document.createElement('div');
+  box.innerHTML = '<form><input name="username" value=""></form>';
+  assertEqual(formHasValues(box), false);
+  box.querySelector('input').value = 'Seth';
+  assertEqual(formHasValues(box), true);
+});

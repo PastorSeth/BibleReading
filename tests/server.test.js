@@ -117,3 +117,45 @@ test('server: signout invalidates token', async () => {
   assertEqual(call({ action: 'load', username: 'Seth', token: a }).error, 'bad_token');
   assert(call({ action: 'load', username: 'Seth', token: b }).ok, 'other phone stays signed in');
 });
+
+test('server: a tie resolves to done, in either order', async () => {
+  const { call } = await freshServer();
+  const { token } = call({ action: 'signup', username: 'Seth', pin: '1234' });
+  call({ action: 'save', username: 'Seth', token, changes: { 'w01d1-nt': { done: true, t: 5 } } });
+  assertEqual(call({ action: 'save', username: 'Seth', token, changes: { 'w01d1-nt': { done: false, t: 5 } } }).progress['w01d1-nt'].done, true);
+  call({ action: 'save', username: 'Seth', token, changes: { 'w01d1-ot': { done: false, t: 7 } } });
+  assertEqual(call({ action: 'save', username: 'Seth', token, changes: { 'w01d1-ot': { done: true, t: 7 } } }).progress['w01d1-ot'].done, true);
+});
+
+test('server: resetting a PIN signs every phone out', async () => {
+  const { call, g } = await freshServer();
+  const old = call({ action: 'signup', username: 'Seth', pin: '1234' }).token;
+  const rows = g.sheets.Users.rows;
+  rows[1][rows[0].indexOf('pinHash')] = '';
+  const fresh = call({ action: 'signin', username: 'Seth', pin: '9999' }).token;
+  assertEqual(call({ action: 'load', username: 'Seth', token: old }).error, 'bad_token');
+  assert(call({ action: 'load', username: 'Seth', token: fresh }).ok, 'the new sign-in works');
+});
+
+test('server: a re-used username starts with no checkmarks', async () => {
+  const { call, g } = await freshServer();
+  const { token } = call({ action: 'signup', username: 'Test1', pin: '1234' });
+  call({ action: 'save', username: 'Test1', token, changes: { 'w01d1-nt': { done: true, t: 5 } } });
+  g.sheets.Users.rows.splice(1, 1); // Seth deletes the test user's row but forgets the Progress row
+  const again = call({ action: 'signup', username: 'test1', pin: '5555' });
+  assertEqual(call({ action: 'load', username: 'test1', token: again.token }).progress, {});
+});
+
+test('server: a lock timeout is "busy", any other failure is "server_error"', async () => {
+  const { call, g } = await freshServer();
+  call({ action: 'signup', username: 'Seth', pin: '1234' });
+  const realLock = g.LockService.getScriptLock;
+  g.LockService.getScriptLock = () => ({ waitLock() { throw new Error('Lock timeout'); }, releaseLock() {} });
+  assertEqual(call({ action: 'signin', username: 'Seth', pin: '1234' }).error, 'busy');
+  g.LockService.getScriptLock = realLock;
+  const realConsole = console.error; console.error = () => {};
+  g.sheets.Users.getDataRange = () => { throw new Error('boom'); };
+  try {
+    assertEqual(call({ action: 'signin', username: 'Seth', pin: '1234' }).error, 'server_error');
+  } finally { console.error = realConsole; }
+});
