@@ -139,6 +139,11 @@ function catchUpIds(progress, today) {
   return allItemIdsBefore(today).filter(id => !isDone(progress, id));
 }
 
+// How many plan days before today still have an unread passage (a "reading" = one day's set).
+function catchUpDays(progress, today) {
+  return new Set(catchUpIds(progress, today).map(id => id.replace(/-(nt|ot|ps|pr)$/, ''))).size;
+}
+
 function weekDoneCount(progress, year, week) {
   return weekItemIds(year, week).filter(id => isDone(progress, id)).length;
 }

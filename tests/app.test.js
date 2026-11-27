@@ -67,7 +67,7 @@ test('app: weekend, before and after', () => {
 
 test('app: catch-up wording', () => {
   const wed = new Date(2027, 0, 6, 9);
-  assertIncludes(renderToday(wed, {}, SETTINGS, NO_SYNC).textContent, '6 readings to catch up');
+  assertIncludes(renderToday(wed, {}, SETTINGS, NO_SYNC).textContent, '2 readings to catch up'); // Monday and Tuesday
   const five = done('2027-w01d1-nt', '2027-w01d1-ot', '2027-w01d1-ps', '2027-w01d2-nt', '2027-w01d2-ot');
   assertIncludes(renderToday(wed, five, SETTINGS, NO_SYNC).textContent, '1 reading to catch up');
   const all = done('2027-w01d1-nt', '2027-w01d1-ot', '2027-w01d1-ps', '2027-w01d2-nt', '2027-w01d2-ot', '2027-w01d2-pr');
@@ -143,6 +143,7 @@ test('app: plan year switch', () => {
 test('app: catch-up view', () => {
   const wed = new Date(2027, 0, 6, 9);
   assertEqual(renderCatchUp(wed, {}, SETTINGS, NO_SYNC).querySelectorAll('button.tick').length, 6);
+  assertIncludes(renderCatchUp(wed, {}, SETTINGS, NO_SYNC).textContent, '2 readings from earlier days');
   const all = done('2027-w01d1-nt', '2027-w01d1-ot', '2027-w01d1-ps', '2027-w01d2-nt', '2027-w01d2-ot', '2027-w01d2-pr');
   assertIncludes(renderCatchUp(wed, all, SETTINGS, NO_SYNC).textContent, 'all caught up');
 });
@@ -285,5 +286,9 @@ test('app: weekend catch-up list starts with the newest week', () => {
   const heads = [...sat.querySelectorAll('main .day-head')].map(x => x.textContent);
   assertEqual(heads[0], 'Monday, January 11');
   assertEqual(sat.querySelectorAll('main .readings button.tick').length, 6);
-  assertIncludes(sat.textContent, 'See all 30');
+  assertIncludes(sat.textContent, 'See all 10');
+});
+
+test("app: the plan page counts a day's passages as one reading", () => {
+  assertIncludes(renderPlan(2027, new Date(2027, 0, 13), {}).querySelector('.seq').textContent, '260 readings, Monday to Friday');
 });

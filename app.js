@@ -7,6 +7,7 @@
 
 const PATTERNS = ['pat-dots', 'pat-diag', 'pat-lines'];
 const TOTAL_READINGS = 780;
+const READING_DAYS = 260; // a "reading" in counts the person sees = one day's set of passages
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 const ICONS = {
@@ -155,7 +156,7 @@ function readingList(items, progress, partners, settings) {
 }
 
 function catchUpLine(progress, now) {
-  const n = catchUpIds(progress, now).length;
+  const n = catchUpDays(progress, now);
   return n ? h('p', { class: 'catch' }, h('a', { href: '#/catchup', text: `${plural(n, 'reading')} to catch up` })) : null;
 }
 
@@ -258,7 +259,7 @@ function renderToday(now, progress, settings, syncState) {
         append(main, h('h3', { class: 'day-head', text: longDate(dateFor(g.year, g.week, g.weekday)) }),
           readingList(items, progress, partners, settings));
       });
-      if (behind.length > 6) append(main, h('p', { class: 'catch' }, h('a', { href: '#/catchup', text: `See all ${behind.length}` })));
+      if (behind.length > 6) append(main, h('p', { class: 'catch' }, h('a', { href: '#/catchup', text: `See all ${catchUpDays(progress, now)}` })));
     }
     append(main, h('h2', { text: `Monday, ${shortDate(dateFor(day.year, day.nextWeek, 1))}` }), previewList(day.year, day.nextWeek, 1));
     append(main, weekGrid(day.year, day.week, now, progress, partners));
@@ -314,7 +315,7 @@ function renderPlan(year, now, progress) {
   return h('div', { class: 'screen' },
     h('header', null, h('div', { class: 'bar' }, h('span', { text: 'Bible Reading' })),
       h('h1', { text: `The ${year} plan` }),
-      h('p', { class: 'seq', text: `${TOTAL_READINGS} readings, Monday to Friday, ${shortDate(planStart(year))} to ${shortDate(dateFor(year, WEEKS, 5))}.` }),
+      h('p', { class: 'seq', text: `${READING_DAYS} readings, Monday to Friday, ${shortDate(planStart(year))} to ${shortDate(dateFor(year, WEEKS, 5))}.` }),
       years.length > 1 ? h('nav', { class: 'years', 'aria-label': 'Years' }, years.map(y =>
         h('a', { href: `#/plan/${y}`, 'aria-current': y === year ? 'page' : null, text: String(y) }))) : null),
     main);
@@ -339,7 +340,7 @@ function renderCatchUp(now, progress, settings, syncState) {
   }
   return h('div', { class: 'screen' },
     h('header', null, topBar(syncState), h('h1', { text: 'Catch up' }),
-      ids.length ? h('p', { class: 'seq', text: `${plural(ids.length, 'reading')} from earlier days` }) : null),
+      ids.length ? h('p', { class: 'seq', text: `${plural(catchUpDays(progress, now), 'reading')} from earlier days` }) : null),
     main);
 }
 

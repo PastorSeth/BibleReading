@@ -104,3 +104,10 @@ test('store: setManyDone marks a batch at once and queues it to sync', () => wit
   assertEqual(getProgress(), { '2027-w01d1-nt': { done: true, t: 50 }, '2027-w01d1-ot': { done: true, t: 50 } });
   assertEqual(Object.keys(getPending()).sort(), ['2027-w01d1-nt', '2027-w01d1-ot']);
 }));
+
+test('store: catchUpDays counts days with anything unread', () => {
+  const wed = new Date(2027, 0, 6, 9);
+  assertEqual(catchUpDays({}, wed), 2);
+  assertEqual(catchUpDays({ '2027-w01d1-nt': { done: true, t: 1 }, '2027-w01d1-ot': { done: true, t: 1 }, '2027-w01d1-ps': { done: true, t: 1 } }, wed), 1);
+  assertEqual(catchUpDays({ '2027-w01d1-nt': { done: true, t: 1 } }, wed), 2, 'a part-read day still counts');
+});
