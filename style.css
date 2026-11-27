@@ -151,6 +151,15 @@ details[open] summary .count { color: var(--ink); font-weight: 700; }
 .btn { font: inherit; font-size: 17px; font-weight: 700; color: var(--ink); background: transparent; border: 2px solid var(--ink); border-radius: 0; padding: 10px 16px; cursor: pointer; }
 .btn.primary { background: var(--ink); color: var(--paper); }
 .btn:disabled { opacity: .5; cursor: default; }
+/* Waiting on the server: the label says what's happening and three small
+   squares fill in turn, a stepped e-ink tick rather than a smooth spinner. */
+.busy:disabled { opacity: 1; cursor: progress; }
+.wait { display: inline-flex; gap: 3px; margin-left: 8px; vertical-align: 1px; }
+.wait i { width: 6px; height: 6px; border: 1.5px solid currentColor; animation: wait-step 1.2s steps(1, end) infinite; }
+.wait i:nth-child(2) { animation-delay: .4s; }
+.wait i:nth-child(3) { animation-delay: .8s; }
+@keyframes wait-step { 0% { background: currentColor; } 33% { background: transparent; } }
+@media (prefers-reduced-motion: reduce) { .wait i { animation: none; } .wait i:first-child { background: currentColor; } }
 .text-btn { font: inherit; font-size: 15px; color: var(--ink); background: none; border: 0; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; padding: 6px; }
 .forgot { font-size: 15px; }
 .disclaimer { font-size: 15px; color: var(--ink-2); margin: 2px 0 14px; padding: 10px 12px; border: 1.5px dashed var(--ink-2); }

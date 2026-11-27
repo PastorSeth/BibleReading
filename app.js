@@ -371,25 +371,68 @@ function forgotHref(username) {
   return `mailto:${HELP_EMAIL}?subject=PIN%20reset&body=${encodeURIComponent(`Username: ${username || ''}`)}`;
 }
 
+/* Buttons that wait on the server (sign in, partners, sign out) say what
+   they're doing and show three small squares filling in turn until the
+   server answers. The keys of the calls still running are kept here, so a
+   button redrawn mid-wait keeps showing it. */
+const waiting = new Set();
+
+function showWaiting(button, on) {
+  if (on === button.classList.contains('busy')) return;
+  if (on) {
+    button.dataset.label = button.textContent;
+    button.textContent = button.dataset.waitLabel;
+    button.append(h('span', { class: 'wait', 'aria-hidden': 'true' }, h('i'), h('i'), h('i')));
+    button.setAttribute('aria-busy', 'true');
+  } else {
+    button.textContent = button.dataset.label;
+    button.removeAttribute('aria-busy');
+  }
+  button.classList.toggle('busy', on);
+  button.disabled = on;
+}
+
+function waitButtonState(button) {
+  if (waiting.has(button.dataset.wait)) showWaiting(button, true);
+  return button;
+}
+
+function waitButton(props, wait, waitLabel) {
+  return waitButtonState(h('button', Object.assign({}, props, { dataset: Object.assign({ wait, waitLabel }, props.dataset) })));
+}
+
+async function whileWaiting(button, work) {
+  const key = button.dataset.wait;
+  waiting.add(key);
+  showWaiting(button, true);
+  try {
+    return await work();
+  } finally {
+    waiting.delete(key);
+    document.querySelectorAll('[data-wait]').forEach(b => { if (b.dataset.wait === key) showWaiting(b, false); });
+    if (button.dataset.wait === key) showWaiting(button, false);
+  }
+}
+
 function accountSection(account, syncState) {
   if (account) {
     const partners = (syncState.partners || []).map(p => h('li', null,
       h('span', { class: 'name', text: p.username }),
       h('span', { class: 'muted', text: p.status === 'mutual' ? 'Reading together' : 'Waiting for them to add you' }),
-      h('button', { type: 'button', class: 'text-btn', dataset: { remove: p.username }, text: 'Remove' })));
+      waitButton({ type: 'button', class: 'text-btn', dataset: { remove: p.username }, text: 'Remove' }, `remove:${p.username}`, 'Removing')));
     const requests = (syncState.requests || []).map(name => h('li', null,
       h('span', { class: 'name', text: name }), h('span', { class: 'muted', text: 'added you' }),
-      h('button', { type: 'button', class: 'btn', dataset: { addback: name }, text: 'Add back' })));
+      waitButton({ type: 'button', class: 'btn', dataset: { addback: name }, text: 'Add back' }, `addback:${name}`, 'Adding')));
     return [
       h('section', null, h('h2', { text: 'Your account' }), h('p', null, 'Signed in as ', h('b', { text: account.username }))),
       h('section', null, h('h2', { text: 'Reading partners' }),
         h('p', { class: 'muted', text: "You see each other's checkmarks once you've both added each other." }),
         partners.length || requests.length ? h('ul', { class: 'people' }, requests, partners) : null,
         h('form', { class: 'add-partner' }, field('Add a partner', 'partner', { placeholder: 'Their username', required: true }),
-          h('button', { class: 'btn', type: 'submit', text: 'Add' }), h('p', { class: 'error', role: 'alert' }))),
+          waitButton({ class: 'btn', type: 'submit', text: 'Add' }, 'addPartner', 'Adding'), h('p', { class: 'error', role: 'alert' }))),
       h('section', null,
         hasPending() ? h('p', { class: 'muted', text: "Some checkmarks haven't synced yet. Signing out now removes them from this phone." }) : null,
-        h('button', { type: 'button', class: 'btn signout', text: 'Sign out' })),
+        waitButton({ type: 'button', class: 'btn signout', text: 'Sign out' }, 'signout', 'Signing out')),
     ];
   }
   return [
@@ -398,14 +441,14 @@ function accountSection(account, syncState) {
     h('section', null, h('h2', { text: 'Optional account' }),
       h('p', { class: 'muted', text: "An account backs up your checkmarks and lets reading partners see them. You don't need one to use the plan." })),
     h('form', { class: 'signin' }, h('h3', { text: 'Sign in' }), field('Username', 'username', { required: true }), pinField('PIN', 'pin'),
-      h('div', { class: 'actions' }, h('button', { class: 'btn primary', type: 'submit', text: 'Sign in' }),
+      h('div', { class: 'actions' }, waitButton({ class: 'btn primary', type: 'submit', text: 'Sign in' }, 'signin', 'Signing in'),
         HELP_EMAIL ? h('a', { class: 'forgot', href: forgotHref(''), text: 'Forgot your PIN?' }) : null),
       h('p', { class: 'error', role: 'alert' })),
     h('form', { class: 'signup' }, h('h3', { text: 'Create an account' }), field('Username', 'username', { required: true }),
       pinField('PIN (4–8 digits)', 'pin'), pinField('PIN again', 'pin2'),
       h('p', { class: 'disclaimer' }, h('b', { text: '✧Disclaimer✧' }),
         " This is a small, free app. Not a bank with top tier encryption. Choose a PIN you don't use everywhere else."),
-      h('div', { class: 'actions' }, h('button', { class: 'btn', type: 'submit', text: 'Create account' })),
+      h('div', { class: 'actions' }, waitButton({ class: 'btn', type: 'submit', text: 'Create account' }, 'signup', 'Creating account')),
       h('p', { class: 'error', role: 'alert' })),
   ];
 }
@@ -664,12 +707,11 @@ async function handleSubmit(form) {
     form.querySelector('.error').textContent = "The two PINs don't match.";
     return;
   }
-  button.disabled = true;
-  let res;
-  if (form.classList.contains('signin')) res = await signIn(data.username, data.pin);
-  else if (form.classList.contains('signup')) res = await signUp(data.username, data.pin);
-  else res = await addPartner(data.partner);
-  button.disabled = false;
+  const res = await whileWaiting(button, () => {
+    if (form.classList.contains('signin')) return signIn(data.username, data.pin);
+    if (form.classList.contains('signup')) return signUp(data.username, data.pin);
+    return addPartner(data.partner);
+  });
   if (res.ok) render();
   else showError(form, res);
 }
@@ -687,10 +729,11 @@ function boot() {
     const tick = e.target.closest('button.tick');
     if (tick) return toggleReading(tick);
     const remove = e.target.closest('[data-remove]');
-    if (remove) return removePartner(remove.dataset.remove).then(render);
+    if (remove) return whileWaiting(remove, () => removePartner(remove.dataset.remove)).then(render);
     const addBack = e.target.closest('[data-addback]');
-    if (addBack) return addPartner(addBack.dataset.addback).then(render);
-    if (e.target.closest('.signout')) return signOut().then(render);
+    if (addBack) return whileWaiting(addBack, () => addPartner(addBack.dataset.addback)).then(render);
+    const signout = e.target.closest('.signout');
+    if (signout) return whileWaiting(signout, signOut).then(render);
     const share = e.target.closest('.share-app');
     if (share) return shareApp(share);
     if (e.target.closest('.print-now')) return window.print();

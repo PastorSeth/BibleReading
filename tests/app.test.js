@@ -426,3 +426,62 @@ test('settings: the account page has both switches', () => withEndpoint('', '', 
   assertIncludes(el.textContent, 'Hide how far behind I am');
   assertIncludes(el.textContent, 'New Testament only');
 }));
+
+// Buttons that wait on the server say so while they wait.
+test('waiting: every server button says what it is doing', () => withEndpoint('https://example.test/exec', '', () => {
+  const out = renderAccount(SETTINGS, null, NO_SYNC);
+  const wait = sel => { const b = out.querySelector(sel); return [b.dataset.wait, b.dataset.waitLabel]; };
+  assertEqual(wait('form.signin button[type=submit]'), ['signin', 'Signing in']);
+  assertEqual(wait('form.signup button[type=submit]'), ['signup', 'Creating account']);
+  const state = { status: 'synced', partners: [partner('Anna')], requests: ['Jo'] };
+  const inside = renderAccount(SETTINGS, { username: 'Seth', token: 't' }, state);
+  const w = sel => { const b = inside.querySelector(sel); return [b.dataset.wait, b.dataset.waitLabel]; };
+  assertEqual(w('form.add-partner button[type=submit]'), ['addPartner', 'Adding']);
+  assertEqual(w('[data-remove="Anna"]'), ['remove:Anna', 'Removing']);
+  assertEqual(w('[data-addback="Jo"]'), ['addback:Jo', 'Adding']);
+  assertEqual(w('.signout'), ['signout', 'Signing out']);
+}));
+
+test('waiting: a button shows the wait and goes back after', () => {
+  const b = h('button', { class: 'btn', dataset: { wait: 'addPartner', waitLabel: 'Adding' }, text: 'Add' });
+  showWaiting(b, true);
+  assertEqual(b.textContent, 'Adding');
+  assertEqual(b.disabled, true);
+  assertEqual(b.getAttribute('aria-busy'), 'true');
+  assert(b.classList.contains('busy'), 'busy class');
+  assertEqual(b.querySelectorAll('.wait i').length, 3);
+  showWaiting(b, true);
+  assertEqual(b.querySelectorAll('.wait').length, 1, 'a second call changes nothing');
+  showWaiting(b, false);
+  assertEqual(b.textContent, 'Add');
+  assertEqual(b.disabled, false);
+  assertEqual(b.getAttribute('aria-busy'), null);
+  assert(!b.classList.contains('busy'), 'no busy class');
+});
+
+test('waiting: the wait lasts as long as the server call, even through a re-render', async () => {
+  const doc = h('div');
+  const make = () => h('button', { type: 'button', dataset: { wait: 'remove:Anna', waitLabel: 'Removing' }, text: 'Remove' });
+  const first = make();
+  doc.append(first);
+  document.body.append(doc);
+  let finish;
+  const call = whileWaiting(first, () => new Promise(r => { finish = r; }));
+  try {
+    assertEqual(first.textContent, 'Removing');
+    const rebuilt = waitButtonState(make());
+    assertEqual(rebuilt.textContent, 'Removing', 'a button drawn mid-wait still shows it');
+    first.replaceWith(rebuilt);
+    finish({ ok: true });
+    assertEqual(await call, { ok: true });
+    assertEqual(rebuilt.textContent, 'Remove');
+    assertEqual(rebuilt.disabled, false);
+    const failing = whileWaiting(rebuilt, () => Promise.reject(new Error('nope')));
+    let threw = false;
+    try { await failing; } catch (e) { threw = true; }
+    assert(threw, 'the error still reaches the caller');
+    assertEqual(rebuilt.textContent, 'Remove', 'a failed call clears the wait too');
+  } finally {
+    doc.remove();
+  }
+});
