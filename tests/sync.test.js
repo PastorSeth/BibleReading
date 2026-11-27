@@ -41,9 +41,9 @@ test('sync: html error page', () => withFakeServer(
   async () => {
     assertEqual(await api('load', {}), { ok: false, error: 'network' });
     saveAccount({ username: 'Seth', token: 'tok' });
-    setDone('w01d1-nt', true, 10);
+    setDone('2027-w01d1-nt', true, 10);
     await syncNow();
-    assertEqual(getPending(), { 'w01d1-nt': { done: true, t: 10 } });
+    assertEqual(getPending(), { '2027-w01d1-nt': { done: true, t: 10 } });
     assertEqual(getSyncState().status, 'offline');
     assertEqual(getAccount(), { username: 'Seth', token: 'tok' });
   }));
@@ -53,9 +53,9 @@ test('sync: network down', () => withFakeServer(
   async () => {
     assertEqual(await api('load', {}), { ok: false, error: 'network' });
     saveAccount({ username: 'Seth', token: 'tok' });
-    setDone('w01d1-nt', true, 10);
+    setDone('2027-w01d1-nt', true, 10);
     await syncNow();
-    assertEqual(Object.keys(getPending()), ['w01d1-nt']);
+    assertEqual(Object.keys(getPending()), ['2027-w01d1-nt']);
     assertEqual(getSyncState().status, 'offline');
   }));
 
@@ -67,12 +67,12 @@ test('sync: sends text/plain POSTs', () => withFakeServer(happyServer(), async c
 }));
 
 test('sync: successful save clears pending and merges server progress', () => withFakeServer(
-  happyServer({ 'w01d2-ot': { done: true, t: 5 } }),
+  happyServer({ '2027-w01d2-ot': { done: true, t: 5 } }),
   async () => {
     saveAccount({ username: 'Seth', token: 'tok' });
-    setDone('w01d1-nt', true, 10);
+    setDone('2027-w01d1-nt', true, 10);
     await syncNow();
-    assertEqual(getProgress(), { 'w01d1-nt': { done: true, t: 10 }, 'w01d2-ot': { done: true, t: 5 } });
+    assertEqual(getProgress(), { '2027-w01d1-nt': { done: true, t: 10 }, '2027-w01d2-ot': { done: true, t: 5 } });
     assertEqual(getPending(), {});
     const state = getSyncState();
     assertEqual(state.status, 'synced');
@@ -83,23 +83,23 @@ test('sync: bad token', () => withFakeServer(
   async () => reply({ ok: false, error: 'bad_token' }),
   async () => {
     saveAccount({ username: 'Seth', token: 'old' });
-    setDone('w01d1-nt', true, 10);
+    setDone('2027-w01d1-nt', true, 10);
     await syncNow();
     assertEqual(getAccount(), null);
-    assertEqual(getProgress(), { 'w01d1-nt': { done: true, t: 10 } });
+    assertEqual(getProgress(), { '2027-w01d1-nt': { done: true, t: 10 } });
     assertEqual(getSyncState().status, 'signed-out-expired');
   }));
 
 test('sync: sign-up uploads existing checkmarks', () => withFakeServer(happyServer(), async calls => {
-  setDone('w01d1-nt', true, 10);
-  setDone('w01d1-ot', true, 11);
+  setDone('2027-w01d1-nt', true, 10);
+  setDone('2027-w01d1-ot', true, 11);
   clearPending(getPending()); // even checkmarks no longer queued are uploaded
   const res = await signUp('Seth', '1234');
   assert(res.ok);
   assertEqual(getAccount(), { username: 'Seth', token: 'tok' });
   const save = calls.find(c => c.body.action === 'save');
   assert(save, 'no save was sent');
-  assertEqual(Object.keys(save.body.changes).sort(), ['w01d1-nt', 'w01d1-ot']);
+  assertEqual(Object.keys(save.body.changes).sort(), ['2027-w01d1-nt', '2027-w01d1-ot']);
 }));
 
 test('sync: failed sign-in saves no account', () => withFakeServer(
@@ -112,7 +112,7 @@ test('sync: failed sign-in saves no account', () => withFakeServer(
 
 test('sync: sign out resets the phone', () => withFakeServer(happyServer(), async calls => {
   saveAccount({ username: 'Seth', token: 'tok' });
-  setDone('w01d1-nt', true, 10);
+  setDone('2027-w01d1-nt', true, 10);
   await signOut();
   assertEqual(calls[0].body.action, 'signout');
   assertEqual([getAccount(), getProgress()], [null, {}]);
@@ -134,7 +134,7 @@ test('sync: a failed load after a good save shows synced, not stuck pending', ()
   async body => (body.action === 'save' ? reply({ ok: true, progress: body.changes }) : { ok: true, status: 200, text: async () => '<html>' }),
   async () => {
     saveAccount({ username: 'Seth', token: 'tok' });
-    setDone('w01d1-nt', true, 10);
+    setDone('2027-w01d1-nt', true, 10);
     setSyncState({ status: 'pending' });
     await syncNow();
     assertEqual(getPending(), {});

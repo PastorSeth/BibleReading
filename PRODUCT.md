@@ -19,7 +19,7 @@ They use it once or twice a day with a **physical Bible open**: glance at today'
 
 ## Product Purpose
 
-A companion to one 2027 reading plan: Foundations NT260 (one New Testament chapter each weekday), the F260 Old Testament selection (one reading each weekday), Psalms on Mon/Wed/Fri, Proverbs in short portions on Tue/Thu. (The plan's weekly memory verse was removed at Seth's request on 2026-11-26.) Weekends are left open for catching up or rest. Week 1 starts Monday, January 4, 2027 and the plan ends Friday, December 31, 2027.
+A companion to one 2027 reading plan: Foundations NT260 (one New Testament chapter each weekday), the F260 Old Testament selection (one reading each weekday), Psalms on Mon/Wed/Fri, Proverbs in short portions on Tue/Thu. (The plan's weekly memory verse was removed at Seth's request on 2026-11-26.) Weekends are left open for catching up or rest. The same plan restarts every January on the first Monday (first year: Monday, January 4 to Friday, December 31, 2027); each year keeps its own checkmarks (decided by Seth 2026-11-26).
 
 Success is people reading their Bibles, not time spent in the app.
 

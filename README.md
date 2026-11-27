@@ -1,14 +1,14 @@
-# Bible Reading 2027
+# Bible Reading
 
-A companion app for the 2027 reading plan, installable on any phone as a "PWA". It doesn't show Bible text. It tells you what to open your own Bible to today, remembers what you've read, and, if you want, lets reading partners see each other's checkmarks.
+A companion app for a yearly Bible reading plan, installable on any phone as a "PWA". It doesn't show Bible text. It tells you what to open your own Bible to today, remembers what you've read, and, if you want, lets reading partners see each other's checkmarks.
 
-**The plan:** 52 weeks, Monday to Friday, from Monday, January 4, 2027 to Friday, December 31, 2027. That's 780 readings. Each weekday has:
+**The plan:** the same plan every year. It starts on the first Monday of January and runs 52 weeks, Monday to Friday: 780 readings. The first year is 2027 (Monday, January 4 to Friday, December 31). Each weekday has:
 
 - **New Testament:** Foundations NT260, one chapter a day.
 - **Old Testament:** the F260 Old Testament selection, one reading a day.
 - **Psalms (Mon/Wed/Fri) or Proverbs (Tue/Thu):** all 150 Psalms (Psalm 119 in 7 parts) and all of Proverbs in 104 short readings.
 
-Weekends are left open for catching up or rest.
+Weekends are left open for catching up or rest. Each year keeps its own checkmarks, so January starts fresh; the Plan screen has a year switch for looking back.
 
 ## What's in this folder
 
@@ -26,7 +26,7 @@ Weekends are left open for catching up or rest.
 
 ## Previewing a day
 
-Before January 4 the app only shows a countdown. To see any day of the plan, add `?date=` to the address:
+Before the plan starts each January, the app only shows a countdown. To see any day of the plan, add `?date=` to the address:
 
 ```
 https://<your-site>/?date=2027-03-15
@@ -52,7 +52,7 @@ With `SYNC_ENDPOINT` empty (how it ships), there are no accounts. Everyone's che
 The script creates two tabs the first time someone signs up. **Don't create or rename these tabs yourself**: the script sets them up as plain text, so a username like "007" isn't turned into the number 7.
 
 - **Users:** one row per account. PINs are stored scrambled (salted SHA-256), never as typed.
-- **Progress:** each person's checkmarks, stored compactly.
+- **Progress:** each person's checkmarks, one row per person per year (named like `seth:2028`), stored compactly.
 
 Reading partners only see each other once **both** have added each other's username. More than two people can read together.
 
@@ -78,7 +78,7 @@ In the **Users** tab, clear the cell in the **tokens** column on their row. Ever
 
 ### Deleting an account
 
-Delete the person's row in **both** tabs (**Users** and **Progress**). If someone later signs up with the same username, they start with no checkmarks either way.
+Delete the person's row in **Users** and all of their rows in **Progress** (one per year). If someone later signs up with the same username, they start with no checkmarks either way.
 
 After 5 wrong PINs, an account is locked for 15 minutes.
 

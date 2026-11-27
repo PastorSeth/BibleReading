@@ -74,11 +74,11 @@ test('server: cleared PIN resets', async () => {
 test('server: save merges', async () => {
   const { call } = await freshServer();
   const { token } = call({ action: 'signup', username: 'Seth', pin: '1234' });
-  const first = call({ action: 'save', username: 'Seth', token, changes: { 'w01d1-nt': { done: true, t: 2 } } });
-  assertEqual(first.progress, { 'w01d1-nt': { done: true, t: 2 } });
+  const first = call({ action: 'save', username: 'Seth', token, changes: { '2027-w01d1-nt': { done: true, t: 2 } } });
+  assertEqual(first.progress, { '2027-w01d1-nt': { done: true, t: 2 } });
   const second = call({ action: 'save', username: 'seth', token,
-    changes: { 'w01d1-nt': { done: false, t: 1 }, 'w01d2-pr': { done: true, t: 3 }, 'w01-mv': { done: true, t: 3 }, 'bogus': { done: true, t: 1 } } });
-  assertEqual(second.progress, { 'w01d1-nt': { done: true, t: 2 }, 'w01d2-pr': { done: true, t: 3 } });
+    changes: { '2027-w01d1-nt': { done: false, t: 1 }, '2027-w01d2-pr': { done: true, t: 3 }, 'w01-mv': { done: true, t: 3 }, 'bogus': { done: true, t: 1 } } });
+  assertEqual(second.progress, { '2027-w01d1-nt': { done: true, t: 2 }, '2027-w01d2-pr': { done: true, t: 3 } });
   assertEqual(call({ action: 'load', username: 'Seth', token }).progress, second.progress);
 });
 
@@ -86,14 +86,14 @@ test('server: partners are mutual', async () => {
   const { call } = await freshServer();
   const seth = call({ action: 'signup', username: 'Seth', pin: '1234' }).token;
   const anna = call({ action: 'signup', username: 'Anna', pin: '4321' }).token;
-  call({ action: 'save', username: 'Anna', token: anna, changes: { 'w01d1-ot': { done: true, t: 5 } } });
+  call({ action: 'save', username: 'Anna', token: anna, changes: { '2027-w01d1-ot': { done: true, t: 5 } } });
   assert(call({ action: 'addPartner', username: 'Seth', token: seth, partner: 'anna' }).ok);
   assertEqual(call({ action: 'load', username: 'Seth', token: seth }).partners, [{ username: 'Anna', status: 'waiting' }]);
   const annaView = call({ action: 'load', username: 'Anna', token: anna });
   assertEqual([annaView.partners, annaView.requests], [[], ['Seth']]);
   assert(call({ action: 'addPartner', username: 'Anna', token: anna, partner: 'SETH ' }).ok);
   assertEqual(call({ action: 'load', username: 'Seth', token: seth }).partners,
-    [{ username: 'Anna', status: 'mutual', progress: { 'w01d1-ot': { done: true, t: 5 } } }]);
+    [{ username: 'Anna', status: 'mutual', progress: { '2027-w01d1-ot': { done: true, t: 5 } } }]);
   const annaNow = call({ action: 'load', username: 'Anna', token: anna });
   assertEqual([annaNow.partners[0].username, annaNow.partners[0].status, annaNow.requests], ['Seth', 'mutual', []]);
   assertEqual(call({ action: 'addPartner', username: 'Seth', token: seth, partner: 'nobody' }).error, 'no_such_user');
@@ -118,13 +118,38 @@ test('server: signout invalidates token', async () => {
   assert(call({ action: 'load', username: 'Seth', token: b }).ok, 'other phone stays signed in');
 });
 
+test('server: older year-less checkmarks are kept as 2027', async () => {
+  const { call } = await freshServer();
+  const { token } = call({ action: 'signup', username: 'Seth', pin: '1234' });
+  const res = call({ action: 'save', username: 'Seth', token, changes: { 'w01d1-nt': { done: true, t: 5 } } });
+  assertEqual(res.progress, { '2027-w01d1-nt': { done: true, t: 5 } });
+});
+
+test('server: each year is stored in its own row', async () => {
+  const { call, g } = await freshServer();
+  const { token } = call({ action: 'signup', username: 'Seth', pin: '1234' });
+  call({ action: 'save', username: 'Seth', token, changes: { '2027-w01d1-nt': { done: true, t: 5 }, '2028-w01d1-nt': { done: true, t: 6 } } });
+  const keys = g.sheets.Progress.rows.slice(1).map(r => r[0]).sort();
+  assertEqual(keys, ['seth:2027', 'seth:2028']);
+  assertEqual(call({ action: 'load', username: 'Seth', token }).progress,
+    { '2027-w01d1-nt': { done: true, t: 5 }, '2028-w01d1-nt': { done: true, t: 6 } });
+});
+
+test('server: a progress row from before years existed loads as 2027', async () => {
+  const { call, g } = await freshServer();
+  const { token } = call({ action: 'signup', username: 'Seth', pin: '1234' });
+  call({ action: 'load', username: 'Seth', token }); // creates the Progress tab
+  g.sheets.Progress.rows.push(['seth', 'w01d1-nt=1.' + (5).toString(36), '1']);
+  assertEqual(call({ action: 'load', username: 'Seth', token }).progress, { '2027-w01d1-nt': { done: true, t: 5 } });
+});
+
 test('server: a tie resolves to done, in either order', async () => {
   const { call } = await freshServer();
   const { token } = call({ action: 'signup', username: 'Seth', pin: '1234' });
-  call({ action: 'save', username: 'Seth', token, changes: { 'w01d1-nt': { done: true, t: 5 } } });
-  assertEqual(call({ action: 'save', username: 'Seth', token, changes: { 'w01d1-nt': { done: false, t: 5 } } }).progress['w01d1-nt'].done, true);
-  call({ action: 'save', username: 'Seth', token, changes: { 'w01d1-ot': { done: false, t: 7 } } });
-  assertEqual(call({ action: 'save', username: 'Seth', token, changes: { 'w01d1-ot': { done: true, t: 7 } } }).progress['w01d1-ot'].done, true);
+  call({ action: 'save', username: 'Seth', token, changes: { '2027-w01d1-nt': { done: true, t: 5 } } });
+  assertEqual(call({ action: 'save', username: 'Seth', token, changes: { '2027-w01d1-nt': { done: false, t: 5 } } }).progress['2027-w01d1-nt'].done, true);
+  call({ action: 'save', username: 'Seth', token, changes: { '2027-w01d1-ot': { done: false, t: 7 } } });
+  assertEqual(call({ action: 'save', username: 'Seth', token, changes: { '2027-w01d1-ot': { done: true, t: 7 } } }).progress['2027-w01d1-ot'].done, true);
 });
 
 test('server: resetting a PIN signs every phone out', async () => {
@@ -140,7 +165,7 @@ test('server: resetting a PIN signs every phone out', async () => {
 test('server: a re-used username starts with no checkmarks', async () => {
   const { call, g } = await freshServer();
   const { token } = call({ action: 'signup', username: 'Test1', pin: '1234' });
-  call({ action: 'save', username: 'Test1', token, changes: { 'w01d1-nt': { done: true, t: 5 } } });
+  call({ action: 'save', username: 'Test1', token, changes: { '2027-w01d1-nt': { done: true, t: 5 } } });
   g.sheets.Users.rows.splice(1, 1); // Seth deletes the test user's row but forgets the Progress row
   const again = call({ action: 'signup', username: 'test1', pin: '5555' });
   assertEqual(call({ action: 'load', username: 'test1', token: again.token }).progress, {});

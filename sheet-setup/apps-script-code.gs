@@ -26,7 +26,8 @@ const PROGRESS_HEADERS = ['key', 'progress', 'updated'];
 const MAX_TRIES = 5;
 const LOCK_MS = 15 * 60 * 1000;
 const MAX_TOKENS = 10;
-const ITEM_ID = /^w\d\dd[1-5]-(nt|ot|ps|pr)$/;
+const ITEM_ID = /^(\d{4})-(w\d\dd[1-5]-(nt|ot|ps|pr))$/;
+const OLD_ITEM_ID = /^w\d\dd[1-5]-(nt|ot|ps|pr)$/; // before years existed: these are 2027
 
 function doPost(e) {
   const lock = LockService.getScriptLock();
@@ -138,7 +139,9 @@ function findUser(key, users) {
   return (users || readRows('Users', USER_HEADERS)).filter(function (u) { return u.key === key; })[0] || null;
 }
 
-/* ---------- Progress, stored compactly: "w01d1-nt=1.<time in base 36>,…" ---------- */
+/* ---------- Progress: one row per person per year ("seth:2028"), stored
+   compactly as "w01d1-nt=1.<time in base 36>,…". A row keyed just "seth"
+   is from before years existed and counts as 2027. ---------- */
 
 function encodeProgress(progress) {
   return Object.keys(progress).map(function (id) {
@@ -146,18 +149,27 @@ function encodeProgress(progress) {
   }).join(',');
 }
 
-function decodeProgress(text) {
+function decodeProgress(text, year) {
   const out = {};
   splitList(text).forEach(function (part) {
     const m = part.match(/^([^=]+)=([01])\.([0-9a-z]+)$/);
-    if (m) out[m[1]] = { done: m[2] === '1', t: parseInt(m[3], 36) };
+    if (m) out[year + '-' + m[1]] = { done: m[2] === '1', t: parseInt(m[3], 36) };
   });
   return out;
 }
 
-function readProgress(key, rows) {
-  const row = (rows || readRows('Progress', PROGRESS_HEADERS)).filter(function (r) { return r.key === key; })[0];
-  return row ? decodeProgress(row.progress) : {};
+function rowYear(row, userKey) {
+  if (row.key === userKey) return '2027';
+  return row.key.indexOf(userKey + ':') === 0 ? row.key.slice(userKey.length + 1) : null;
+}
+
+function readProgress(userKey, rows) {
+  let out = {};
+  (rows || readRows('Progress', PROGRESS_HEADERS)).forEach(function (r) {
+    const year = rowYear(r, userKey);
+    if (year) out = mergeProgress(out, decodeProgress(r.progress, year));
+  });
+  return out;
 }
 
 function mergeProgress(a, b) {
@@ -174,8 +186,9 @@ function cleanChanges(changes) {
   if (!changes || typeof changes !== 'object') return out;
   Object.keys(changes).forEach(function (id) {
     const c = changes[id];
-    if (ITEM_ID.test(id) && c && typeof c.done === 'boolean' && typeof c.t === 'number' && isFinite(c.t) && c.t >= 0) {
-      out[id] = { done: c.done, t: Math.floor(c.t) };
+    const full = OLD_ITEM_ID.test(id) ? '2027-' + id : id;
+    if (ITEM_ID.test(full) && c && typeof c.done === 'boolean' && typeof c.t === 'number' && isFinite(c.t) && c.t >= 0) {
+      out[full] = { done: c.done, t: Math.floor(c.t) };
     }
   });
   return out;
@@ -196,8 +209,9 @@ function signup(body) {
   const token = issueToken(user);
   writeRow('Users', USER_HEADERS, user);
   // A username can be re-used after Seth deletes an account; never inherit old checkmarks.
-  const oldProgress = readRows('Progress', PROGRESS_HEADERS).filter(function (r) { return r.key === key; })[0];
-  if (oldProgress) writeRow('Progress', PROGRESS_HEADERS, { _row: oldProgress._row, key: key, progress: '', updated: Date.now() });
+  readRows('Progress', PROGRESS_HEADERS).forEach(function (r) {
+    if (rowYear(r, key)) writeRow('Progress', PROGRESS_HEADERS, { _row: r._row, key: r.key, progress: '', updated: Date.now() });
+  });
   return { ok: true, username: username, token: token };
 }
 
@@ -242,13 +256,29 @@ function withAuth(action) {
 }
 
 function save(body, user) {
-  const rows = readRows('Progress', PROGRESS_HEADERS);
-  const existing = rows.filter(function (r) { return r.key === user.key; })[0];
-  const merged = mergeProgress(existing ? decodeProgress(existing.progress) : {}, cleanChanges(body.changes));
-  writeRow('Progress', PROGRESS_HEADERS, {
-    _row: existing ? existing._row : 0, key: user.key, progress: encodeProgress(merged), updated: Date.now(),
+  const changes = cleanChanges(body.changes);
+  let rows = readRows('Progress', PROGRESS_HEADERS);
+  const legacy = rows.filter(function (r) { return r.key === user.key && r.progress; })[0];
+  const years = {};
+  Object.keys(changes).forEach(function (id) { years[ITEM_ID.exec(id)[1]] = true; });
+  if (legacy) years['2027'] = true; // move a pre-years row into the 2027 row
+  Object.keys(years).forEach(function (year) {
+    const rowKey = user.key + ':' + year;
+    const existing = rows.filter(function (r) { return r.key === rowKey; })[0];
+    let merged = existing ? decodeProgress(existing.progress, year) : {};
+    if (year === '2027' && legacy) merged = mergeProgress(merged, decodeProgress(legacy.progress, '2027'));
+    Object.keys(changes).forEach(function (id) {
+      if (id.indexOf(year + '-') === 0) merged = mergeProgress(merged, { [id]: changes[id] });
+    });
+    const compact = {};
+    Object.keys(merged).forEach(function (id) { compact[id.slice(year.length + 1)] = merged[id]; });
+    writeRow('Progress', PROGRESS_HEADERS, {
+      _row: existing ? existing._row : 0, key: rowKey, progress: encodeProgress(compact), updated: Date.now(),
+    });
+    rows = readRows('Progress', PROGRESS_HEADERS);
   });
-  return { ok: true, progress: merged };
+  if (legacy) writeRow('Progress', PROGRESS_HEADERS, { _row: legacy._row, key: legacy.key, progress: '', updated: Date.now() });
+  return { ok: true, progress: readProgress(user.key) };
 }
 
 function load(body, user, users) {

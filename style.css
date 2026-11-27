@@ -123,6 +123,10 @@ details[open] summary .count { color: var(--ink); font-weight: 700; }
 .open-week { display: inline-block; font-size: 14px; padding: 6px 0 14px; }
 .empty { font-size: 20px; font-weight: 700; margin-top: 28px; }
 
+.years { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+.years a { font-size: 15px; padding: 6px 12px; border: 2px solid var(--ink); text-decoration: none; }
+.years a[aria-current="page"] { background: var(--ink); color: var(--paper); font-weight: 700; }
+
 /* ---------- Account and settings ---------- */
 .account section { margin-top: 8px; }
 .account form { border-top: 2px solid var(--ink); padding: 18px 0 8px; margin-top: 24px; }

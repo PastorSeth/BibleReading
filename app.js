@@ -83,8 +83,13 @@ const trackClass = track => (track === 'ps' || track === 'pr' ? 'wis' : track);
 
 function parseRoute(hash) {
   const path = String(hash || '').replace(/^#/, '');
+  const clampWeek = n => Math.min(WEEKS, Math.max(1, Number(n)));
+  const yearWeek = path.match(/^\/week\/(\d{4})\/(\d+)$/);
+  if (yearWeek) return { name: 'week', year: Math.max(FIRST_YEAR, Number(yearWeek[1])), week: clampWeek(yearWeek[2]) };
   const week = path.match(/^\/week\/(\d+)$/);
-  if (week) return { name: 'week', week: Math.min(WEEKS, Math.max(1, Number(week[1]))) };
+  if (week) return { name: 'week', week: clampWeek(week[1]) };
+  const planYear = path.match(/^\/plan\/(\d{4})$/);
+  if (planYear) return { name: 'plan', year: Math.max(FIRST_YEAR, Number(planYear[1])) };
   if (['/plan', '/catchup', '/account'].includes(path)) return { name: path.slice(1) };
   return { name: 'today' };
 }
@@ -96,12 +101,14 @@ function currentWeek(now) {
   return day.week;
 }
 
+const currentYear = now => planDayForDate(now).year;
+
 /* ---------- Partners ---------- */
 
 function mutualPartners(syncState) {
   return ((syncState && syncState.partners) || [])
     .filter(p => p.status === 'mutual')
-    .map((p, i) => ({ name: p.username, progress: p.progress || {}, pattern: PATTERNS[i % PATTERNS.length] }));
+    .map((p, i) => ({ name: p.username, progress: withYears(p.progress || {}), pattern: PATTERNS[i % PATTERNS.length] }));
 }
 
 // Who else read this: names with one or two partners, initials with more, "+N" past three.
@@ -125,7 +132,7 @@ function topBar(syncState) {
   } else if (status === 'signed-out-expired') {
     marker = h('a', { class: 'sync', href: '#/account' }, 'Please sign in again');
   }
-  return h('div', { class: 'bar' }, h('span', { text: 'Bible Reading 2027' }), marker);
+  return h('div', { class: 'bar' }, h('span', { text: 'Bible Reading' }), marker);
 }
 
 function readingRow(item, done, partners, settings) {
@@ -151,18 +158,18 @@ function catchUpLine(progress, now) {
   return n ? h('p', { class: 'catch' }, h('a', { href: '#/catchup', text: `${plural(n, 'reading')} to catch up` })) : null;
 }
 
-function weekGrid(week, now, progress, partners) {
+function weekGrid(year, week, now, progress, partners) {
   const day = planDayForDate(now);
-  const today = day.status === 'reading' && day.week === week ? day.weekday : 0;
+  const today = day.status === 'reading' && day.year === year && day.week === week ? day.weekday : 0;
   if (selectedPartner >= partners.length) selectedPartner = 0;
   const shown = partners[selectedPartner];
 
   const head = [h('span')].concat([1, 2, 3, 4, 5].map(d =>
-    h('span', { class: d === today ? 'day now' : 'day', text: dayName(dateFor(week, d)) })));
+    h('span', { class: d === today ? 'day now' : 'day', text: dayName(dateFor(year, week, d)) })));
   const rows = [['nt', 'New Test.'], ['ot', 'Old Test.'], ['wis', 'Psalm/Prov.']].map(([cls, label], r) => [
     h('span', { class: `label ${cls}`, text: label }),
     [1, 2, 3, 4, 5].map(d => {
-      const id = readingsFor(week, d)[r].id;
+      const id = readingsFor(year, week, d)[r].id;
       return h('span', { class: `cell ${cls}${d === today ? ' now' : ''}` },
         h('i', { class: isDone(progress, id) ? 'me on' : 'me' }),
         shown ? h('i', { class: `her ${shown.pattern}${isDone(shown.progress, id) ? ' on' : ''}` }) : null);
@@ -170,8 +177,8 @@ function weekGrid(week, now, progress, partners) {
   ]);
 
   const counts = partners.length >= 2
-    ? h('p', { class: 'counts', text: [`You ${weekDoneCount(progress, week)} of 15`]
-      .concat(partners.map(p => `${p.name} ${weekDoneCount(p.progress, week)} of 15`)).join(', ') })
+    ? h('p', { class: 'counts', text: [`You ${weekDoneCount(progress, year, week)} of 15`]
+      .concat(partners.map(p => `${p.name} ${weekDoneCount(p.progress, year, week)} of 15`)).join(', ') })
     : null;
   const picker = partners.length >= 2
     ? h('label', { class: 'switch-label' }, 'Showing ',
@@ -188,19 +195,20 @@ function weekGrid(week, now, progress, partners) {
     key, counts);
 }
 
-function previewList(week, weekday) {
-  return h('ul', { class: 'preview' }, readingsFor(week, weekday).map(item =>
+function previewList(year, week, weekday) {
+  return h('ul', { class: 'preview' }, readingsFor(year, week, weekday).map(item =>
     h('li', { class: trackClass(item.track) }, h('i', { class: 'solid' }), h('span', { text: displayRef(item.ref) }), h('span', { class: 'muted', text: item.label }))));
 }
 
 function itemsForIds(ids) {
   const groups = [];
   ids.forEach(id => {
-    const [, w, d] = id.match(/^w(\d\d)d(\d)/);
-    const key = `${w}-${d}`;
+    const p = parseItemId(id);
+    if (!p) return;
+    const key = `${p.year}-${p.week}-${p.weekday}`;
     let g = groups.find(x => x.key === key);
-    if (!g) groups.push(g = { key, week: Number(w), weekday: Number(d), items: [] });
-    g.items.push(readingsFor(g.week, g.weekday).find(r => r.id === id));
+    if (!g) groups.push(g = { key, year: p.year, week: p.week, weekday: p.weekday, items: [] });
+    g.items.push(readingsFor(p.year, p.week, p.weekday).find(r => r.id === id));
   });
   return groups;
 }
@@ -215,17 +223,18 @@ function renderToday(now, progress, settings, syncState) {
   append(root, main);
 
   if (day.status === 'before') {
-    append(root.querySelector('header'), h('h1', { text: 'Starts Monday, January 4' }),
+    append(root.querySelector('header'), h('h1', { text: `Starts ${longDate(planStart(day.year))}` }),
       h('p', { class: 'seq', text: `${plural(day.daysUntilStart, 'day')} to go` }));
-    append(main, h('h2', { text: 'The first day' }), previewList(1, 1),
-      h('p', { class: 'catch' }, h('a', { href: '#/week/1', text: 'Preview week 1' })));
+    append(main, h('h2', { text: 'The first day' }), previewList(day.year, 1, 1),
+      h('p', { class: 'catch' }, h('a', { href: `#/week/${day.year}/1`, text: 'Preview week 1' })));
     return root;
   }
   if (day.status === 'after') {
-    const read = Object.keys(progress).filter(id => isDone(progress, id)).length;
+    const read = Object.keys(progress).filter(id => id.startsWith(`${day.year}-`) && isDone(progress, id)).length;
     append(root.querySelector('header'), h('h1', { text: 'The year is done' }),
-      h('p', { class: 'seq', text: `You read ${read} of ${TOTAL_READINGS} readings.` }));
-    append(main, h('p', { class: 'catch' }, h('a', { href: '#/plan', text: 'Look back over the year' })));
+      h('p', { class: 'seq', text: `You read ${read} of ${TOTAL_READINGS} readings in ${day.year}.` }));
+    append(main, h('p', null, `The plan starts again ${longDate(planStart(day.year + 1))}.`),
+      h('p', { class: 'catch' }, h('a', { href: `#/plan/${day.year}`, text: 'Look back over the year' })));
     return root;
   }
 
@@ -238,56 +247,63 @@ function renderToday(now, progress, settings, syncState) {
         readingList(itemsForIds(behind.slice(0, 6)).flatMap(g => g.items), progress, partners, settings));
       if (behind.length > 6) append(main, h('p', { class: 'catch' }, h('a', { href: '#/catchup', text: `See all ${behind.length}` })));
     }
-    append(main, h('h2', { text: `Monday, ${shortDate(dateFor(day.nextWeek, 1))}` }), previewList(day.nextWeek, 1));
-    append(main, weekGrid(day.week, now, progress, partners));
+    append(main, h('h2', { text: `Monday, ${shortDate(dateFor(day.year, day.nextWeek, 1))}` }), previewList(day.year, day.nextWeek, 1));
+    append(main, weekGrid(day.year, day.week, now, progress, partners));
     return root;
   }
 
   append(root.querySelector('header'), h('p', { class: 'seq', text: `Week ${day.week}, day ${day.weekday}` }));
-  append(main, readingList(readingsFor(day.week, day.weekday), progress, partners, settings),
-    weekGrid(day.week, now, progress, partners),
+  append(main, readingList(readingsFor(day.year, day.week, day.weekday), progress, partners, settings),
+    weekGrid(day.year, day.week, now, progress, partners),
     catchUpLine(progress, now));
   return root;
 }
 
-function renderWeek(week, now, progress, settings, syncState) {
+function renderWeek(year, week, now, progress, settings, syncState) {
   const partners = mutualPartners(syncState);
   const today = planDayForDate(now);
+  const prev = week > 1 ? [year, week - 1] : (year > FIRST_YEAR ? [year - 1, WEEKS] : null);
+  const next = week < WEEKS ? [year, week + 1] : [year + 1, 1];
   const root = h('div', { class: 'screen' },
     h('header', null, topBar(syncState),
       h('div', { class: 'week-nav' },
-        week > 1 ? h('a', { class: 'prev', href: `#/week/${week - 1}`, 'aria-label': `Week ${week - 1}` }, icon('prev')) : h('span'),
+        prev ? h('a', { class: 'prev', href: `#/week/${prev[0]}/${prev[1]}`, 'aria-label': `Week ${prev[1]}, ${prev[0]}` }, icon('prev')) : h('span'),
         h('h1', { text: `Week ${week}` }),
-        week < WEEKS ? h('a', { class: 'next', href: `#/week/${week + 1}`, 'aria-label': `Week ${week + 1}` }, icon('next')) : h('span')),
-      h('p', { class: 'seq centered', text: `${shortDate(dateFor(week, 1))} to ${shortDate(dateFor(week, 5))}` })));
+        h('a', { class: 'next', href: `#/week/${next[0]}/${next[1]}`, 'aria-label': `Week ${next[1]}, ${next[0]}` }, icon('next'))),
+      h('p', { class: 'seq centered', text: `${shortDate(dateFor(year, week, 1))} to ${shortDate(dateFor(year, week, 5))}, ${year}` })));
   const main = h('main');
   for (let d = 1; d <= 5; d++) {
-    const isToday = today.status === 'reading' && today.week === week && today.weekday === d;
-    append(main, h('h2', { text: longDate(dateFor(week, d)) + (isToday ? ', today' : '') }),
-      readingList(readingsFor(week, d), progress, partners, settings));
+    const isToday = today.status === 'reading' && today.year === year && today.week === week && today.weekday === d;
+    append(main, h('h2', { text: longDate(dateFor(year, week, d)) + (isToday ? ', today' : '') }),
+      readingList(readingsFor(year, week, d), progress, partners, settings));
   }
   append(root, main);
   return root;
 }
 
-function renderPlan(now, progress) {
+function renderPlan(year, now, progress) {
   const day = planDayForDate(now);
-  const openWeek = day.status === 'before' ? 1 : day.week || 0;
+  const openWeek = day.year !== year ? 0 : (day.status === 'before' ? 1 : day.week || 0);
   const main = h('main');
   for (let w = 1; w <= WEEKS; w++) {
     const days = [1, 2, 3, 4, 5].map(d => h('li', null,
-      h('span', { class: 'muted', text: dayName(dateFor(w, d)) }),
-      readingsFor(w, d).map(r => h('span', { class: `${trackClass(r.track)}${isDone(progress, r.id) ? ' done' : ''}`, text: displayRef(r.ref) }))));
+      h('span', { class: 'muted', text: dayName(dateFor(year, w, d)) }),
+      readingsFor(year, w, d).map(r => h('span', { class: `${trackClass(r.track)}${isDone(progress, r.id) ? ' done' : ''}`, text: displayRef(r.ref) }))));
     append(main, h('details', { open: w === openWeek },
-      h('summary', null, h('b', { text: `Week ${w}` }), h('span', { class: 'muted', text: `${shortDate(dateFor(w, 1))} to ${shortDate(dateFor(w, 5))}` }),
-        h('span', { class: 'count', text: `${weekDoneCount(progress, w)} of 15` })),
+      h('summary', null, h('b', { text: `Week ${w}` }), h('span', { class: 'muted', text: `${shortDate(dateFor(year, w, 1))} to ${shortDate(dateFor(year, w, 5))}` }),
+        h('span', { class: 'count', text: `${weekDoneCount(progress, year, w)} of 15` })),
       h('ul', { class: 'plan-days' }, days),
-      h('a', { class: 'open-week', href: `#/week/${w}`, text: `Open week ${w}` })));
+      h('a', { class: 'open-week', href: `#/week/${year}/${w}`, text: `Open week ${w}` })));
   }
+  const lastYear = Math.max(day.year, year);
+  const years = [];
+  for (let y = FIRST_YEAR; y <= lastYear; y++) years.push(y);
   return h('div', { class: 'screen' },
-    h('header', null, h('div', { class: 'bar' }, h('span', { text: 'Bible Reading 2027' })),
-      h('h1', { text: 'The whole year' }),
-      h('p', { class: 'seq', text: `${TOTAL_READINGS} readings, Monday to Friday, January 4 to December 31.` })),
+    h('header', null, h('div', { class: 'bar' }, h('span', { text: 'Bible Reading' })),
+      h('h1', { text: `The ${year} plan` }),
+      h('p', { class: 'seq', text: `${TOTAL_READINGS} readings, Monday to Friday, ${shortDate(planStart(year))} to ${shortDate(dateFor(year, WEEKS, 5))}.` }),
+      years.length > 1 ? h('nav', { class: 'years', 'aria-label': 'Years' }, years.map(y =>
+        h('a', { href: `#/plan/${y}`, 'aria-current': y === year ? 'page' : null, text: String(y) }))) : null),
     main);
 }
 
@@ -298,7 +314,7 @@ function renderCatchUp(now, progress, settings, syncState) {
   if (!ids.length) {
     append(main, h('p', { class: 'empty', text: "You're all caught up." }), h('p', { class: 'catch' }, h('a', { href: '#/', text: 'Back to today' })));
   } else {
-    itemsForIds(ids).forEach(g => append(main, h('h2', { text: longDate(dateFor(g.week, g.weekday)) }), readingList(g.items, progress, partners, settings)));
+    itemsForIds(ids).forEach(g => append(main, h('h2', { text: longDate(dateFor(g.year, g.week, g.weekday)) }), readingList(g.items, progress, partners, settings)));
   }
   return h('div', { class: 'screen' },
     h('header', null, topBar(syncState), h('h1', { text: 'Catch up' }),
@@ -368,7 +384,7 @@ function renderAccount(settings, account, syncState) {
 }
 
 function tabBar(route, now) {
-  const tabs = [['today', '#/', 'Today'], ['week', `#/week/${currentWeek(now)}`, 'Week'], ['plan', '#/plan', 'Plan'], ['account', '#/account', 'Account']];
+  const tabs = [['today', '#/', 'Today'], ['week', `#/week/${currentYear(now)}/${currentWeek(now)}`, 'Week'], ['plan', '#/plan', 'Plan'], ['account', '#/account', 'Account']];
   const active = route.name === 'catchup' ? 'today' : route.name;
   return h('nav', { class: 'tabs', 'aria-label': 'Sections' }, tabs.map(([name, href, label]) =>
     h('a', { href, class: name === active ? 'on' : null, 'aria-current': name === active ? 'page' : null }, icon(name), label)));
@@ -430,8 +446,8 @@ function render() {
   const progress = getProgress(), settings = getSettings(), state = getSyncState();
   const screens = {
     today: () => renderToday(now, progress, settings, state),
-    week: () => renderWeek(route.week, now, progress, settings, state),
-    plan: () => renderPlan(now, progress),
+    week: () => renderWeek(route.year || currentYear(now), route.week, now, progress, settings, state),
+    plan: () => renderPlan(route.year || currentYear(now), now, progress),
     catchup: () => renderCatchUp(now, progress, settings, state),
     account: () => renderAccount(settings, getAccount(), state),
   };

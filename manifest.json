@@ -1,7 +1,7 @@
 {
-  "name": "Bible Reading 2027",
-  "short_name": "Reading 2027",
-  "description": "Today's readings for the 2027 plan, your checkmarks, and your reading partners'.",
+  "name": "Bible Reading",
+  "short_name": "Bible Reading",
+  "description": "Today's readings for the yearly plan, your checkmarks, and your reading partners'.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

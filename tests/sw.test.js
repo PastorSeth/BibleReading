@@ -18,7 +18,7 @@ test('sw: every app shell file exists', async () => {
 
 test('sw: manifest', async () => {
   const m = await (await fetch('../manifest.json')).json();
-  assertEqual([m.name, m.short_name, m.display, m.start_url, m.scope], ['Bible Reading 2027', 'Reading 2027', 'standalone', './', './']);
+  assertEqual([m.name, m.short_name, m.display, m.start_url, m.scope], ['Bible Reading', 'Bible Reading', 'standalone', './', './']);
   assertEqual(m.icons.length >= 3, true);
   for (const icon of m.icons) assertEqual((await fetch(`../${icon.src}`)).status, 200, icon.src);
 });

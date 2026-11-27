@@ -18,7 +18,10 @@ test('app: parseRoute', () => {
   assertEqual(parseRoute('#/week/99'), { name: 'week', week: 52 });
   assertEqual(parseRoute('#/week/0'), { name: 'week', week: 1 });
   assertEqual(parseRoute('#/week/x'), { name: 'today' });
+  assertEqual(parseRoute('#/week/2028/3'), { name: 'week', year: 2028, week: 3 });
   assertEqual(parseRoute('#/plan'), { name: 'plan' });
+  assertEqual(parseRoute('#/plan/2028'), { name: 'plan', year: 2028 });
+  assertEqual(parseRoute('#/plan/1999'), { name: 'plan', year: 2027 });
   assertEqual(parseRoute('#/catchup'), { name: 'catchup' });
   assertEqual(parseRoute('#/account'), { name: 'account' });
   assertEqual(parseRoute('#/nope'), { name: 'today' });
@@ -28,6 +31,7 @@ test('app: today on a reading day', () => {
   const el = renderToday(new Date(2027, 0, 4, 8), {}, SETTINGS, NO_SYNC);
   const text = el.textContent;
   ['Monday, January 4', 'Week 1, day 1', 'Luke 1', 'Genesis 1', 'Psalm 1'].forEach(s => assertIncludes(text, s));
+  assertEqual(el.querySelector('.bar span').textContent, 'Bible Reading');
   assert(!/memory/i.test(text), 'no memory verse');
   const ticks = el.querySelectorAll('button.tick');
   assertEqual(ticks.length, 3);
@@ -41,7 +45,7 @@ test('app: today on a reading day', () => {
 });
 
 test('app: done readings show pressed', () => {
-  const el = renderToday(new Date(2027, 0, 4, 8), done('w01d1-ot'), SETTINGS, NO_SYNC);
+  const el = renderToday(new Date(2027, 0, 4, 8), done('2027-w01d1-ot'), SETTINGS, NO_SYNC);
   assertEqual([...el.querySelectorAll('button.tick')].map(b => b.getAttribute('aria-pressed')), ['false', 'true', 'false']);
 });
 
@@ -55,15 +59,18 @@ test('app: weekend, before and after', () => {
   assertIncludes(sat, 'Weekend');
   assertIncludes(sat, 'Luke 6'); // a peek at Monday
   assertIncludes(renderToday(new Date(2027, 0, 1), {}, SETTINGS, NO_SYNC).textContent, 'January 4');
-  assertIncludes(renderToday(new Date(2028, 0, 3), done('w01d1-nt'), SETTINGS, NO_SYNC).textContent, '1 of 780');
+  assertIncludes(renderToday(new Date(2028, 0, 1), {}, SETTINGS, NO_SYNC).textContent, 'Starts Monday, January 3');
+  const after = renderToday(new Date(2028, 11, 30), done('2028-w01d1-nt', '2027-w01d1-ot'), SETTINGS, NO_SYNC).textContent;
+  assertIncludes(after, '1 of 780');
+  assertIncludes(after, 'Monday, January 1');
 });
 
 test('app: catch-up wording', () => {
   const wed = new Date(2027, 0, 6, 9);
   assertIncludes(renderToday(wed, {}, SETTINGS, NO_SYNC).textContent, '6 readings to catch up');
-  const five = done('w01d1-nt', 'w01d1-ot', 'w01d1-ps', 'w01d2-nt', 'w01d2-ot');
+  const five = done('2027-w01d1-nt', '2027-w01d1-ot', '2027-w01d1-ps', '2027-w01d2-nt', '2027-w01d2-ot');
   assertIncludes(renderToday(wed, five, SETTINGS, NO_SYNC).textContent, '1 reading to catch up');
-  const all = done('w01d1-nt', 'w01d1-ot', 'w01d1-ps', 'w01d2-nt', 'w01d2-ot', 'w01d2-pr');
+  const all = done('2027-w01d1-nt', '2027-w01d1-ot', '2027-w01d1-ps', '2027-w01d2-nt', '2027-w01d2-ot', '2027-w01d2-pr');
   assert(!/catch up/.test(renderToday(wed, all, SETTINGS, NO_SYNC).textContent), 'no catch-up line when caught up');
 });
 
@@ -76,7 +83,7 @@ test('app: no partners hides partner bits', () => {
 
 test('app: one partner shows names', () => {
   const el = renderToday(new Date(2027, 0, 4, 8), {}, SETTINGS,
-    withPartners(partner('Anna', done('w01d1-nt')), partner('Wait', {}, 'waiting')));
+    withPartners(partner('Anna', done('2027-w01d1-nt')), partner('Wait', {}, 'waiting')));
   assertIncludes(rowFor(el, 'Luke 1').textContent, 'Anna');
   assert(!rowFor(el, 'Genesis 1').textContent.includes('Anna'), 'Anna has not read Genesis 1');
   assert(!el.textContent.includes('Wait'), 'waiting partners are not shown');
@@ -86,7 +93,7 @@ test('app: one partner shows names', () => {
 });
 
 test('app: many partners use initials and +N', () => {
-  const ids = done('w01d1-nt');
+  const ids = done('2027-w01d1-nt');
   const el = renderToday(new Date(2027, 0, 4, 8), {}, SETTINGS,
     withPartners(partner('Anna', ids), partner('Mark', ids), partner('Jo', ids), partner('Zed', ids)));
   const row = rowFor(el, 'Luke 1');
@@ -97,23 +104,26 @@ test('app: many partners use initials and +N', () => {
 
 test('app: partner names are text, not markup', () => {
   const el = renderToday(new Date(2027, 0, 4, 8), {}, SETTINGS,
-    withPartners(partner('<img src=x onerror=alert(1)>', done('w01d1-nt'))));
+    withPartners(partner('<img src=x onerror=alert(1)>', done('2027-w01d1-nt'))));
   assertEqual(el.querySelectorAll('img').length, 0);
 });
 
 test('app: week view', () => {
-  const el = renderWeek(2, new Date(2027, 0, 4), {}, SETTINGS, NO_SYNC);
+  const el = renderWeek(2027, 2, new Date(2027, 0, 4), {}, SETTINGS, NO_SYNC);
   assertIncludes(el.textContent, 'Week 2');
   assertIncludes(el.textContent, 'Luke 6');
   assertIncludes(el.textContent, 'Monday, January 11');
   assertEqual(el.querySelectorAll('button.tick').length, 15);
-  assertEqual(el.querySelector('a.prev').getAttribute('href'), '#/week/1');
-  assertEqual(el.querySelector('a.next').getAttribute('href'), '#/week/3');
-  assertEqual(renderWeek(52, new Date(2027, 0, 4), {}, SETTINGS, NO_SYNC).querySelectorAll('a.next').length, 0);
+  assertEqual(el.querySelector('a.prev').getAttribute('href'), '#/week/2027/1');
+  assertEqual(el.querySelector('a.next').getAttribute('href'), '#/week/2027/3');
+  assertEqual(renderWeek(2027, 52, new Date(2027, 0, 4), {}, SETTINGS, NO_SYNC).querySelector('a.next').getAttribute('href'), '#/week/2028/1');
+  assertEqual(renderWeek(2027, 1, new Date(2027, 0, 4), {}, SETTINGS, NO_SYNC).querySelectorAll('a.prev').length, 0);
+  assertEqual(renderWeek(2028, 1, new Date(2028, 0, 4), {}, SETTINGS, NO_SYNC).querySelector('a.prev').getAttribute('href'), '#/week/2027/52');
+  assertIncludes(renderWeek(2028, 1, new Date(2028, 0, 4), {}, SETTINGS, NO_SYNC).textContent, 'Monday, January 3');
 });
 
 test('app: plan view', () => {
-  const el = renderPlan(new Date(2027, 0, 13), done('w01d1-nt'));
+  const el = renderPlan(2027, new Date(2027, 0, 13), done('2027-w01d1-nt'));
   const weeks = el.querySelectorAll('details');
   assertEqual(weeks.length, 52);
   assertEqual([...weeks].filter(d => d.open).length, 1);
@@ -121,10 +131,18 @@ test('app: plan view', () => {
   assertIncludes(weeks[0].textContent, '1 of 15');
 });
 
+test('app: plan year switch', () => {
+  const el = renderPlan(2027, new Date(2028, 0, 5), done('2027-w01d1-nt'));
+  assertIncludes(el.querySelector('h1').textContent, '2027');
+  const years = [...el.querySelectorAll('.years a')].map(a => [a.textContent, a.getAttribute('href'), a.getAttribute('aria-current')]);
+  assertEqual(years, [['2027', '#/plan/2027', 'page'], ['2028', '#/plan/2028', null]]);
+  assertEqual(renderPlan(2027, new Date(2027, 5, 1), {}).querySelectorAll('.years').length, 0, 'no switch while there is only one year');
+});
+
 test('app: catch-up view', () => {
   const wed = new Date(2027, 0, 6, 9);
   assertEqual(renderCatchUp(wed, {}, SETTINGS, NO_SYNC).querySelectorAll('button.tick').length, 6);
-  const all = done('w01d1-nt', 'w01d1-ot', 'w01d1-ps', 'w01d2-nt', 'w01d2-ot', 'w01d2-pr');
+  const all = done('2027-w01d1-nt', '2027-w01d1-ot', '2027-w01d1-ps', '2027-w01d2-nt', '2027-w01d2-ot', '2027-w01d2-pr');
   assertIncludes(renderCatchUp(wed, all, SETTINGS, NO_SYNC).textContent, 'all caught up');
 });
 
@@ -170,9 +188,9 @@ test('app: ?date= previews another day', () => {
 test('app: screens never show "null" or "undefined"', () => {
   const dates = [new Date(2026, 10, 26), new Date(2027, 0, 4, 8), new Date(2027, 0, 6, 8), new Date(2027, 0, 9),
     new Date(2027, 11, 31, 8), new Date(2028, 0, 3)];
-  const states = [NO_SYNC, withPartners(partner('Anna', done('w01d1-nt')))];
+  const states = [NO_SYNC, withPartners(partner('Anna', done('2027-w01d1-nt')))];
   dates.forEach(d => states.forEach(s => {
-    [renderToday(d, {}, SETTINGS, s), renderWeek(1, d, {}, SETTINGS, s), renderCatchUp(d, {}, SETTINGS, s), renderPlan(d, {})]
+    [renderToday(d, {}, SETTINGS, s), renderWeek(2027, 1, d, {}, SETTINGS, s), renderCatchUp(d, {}, SETTINGS, s), renderPlan(2027, d, {})]
       .forEach(el => assert(!/\bnull\b|\bundefined\b/.test(el.textContent), `${d.toDateString()}: ${el.textContent.match(/.{0,30}(null|undefined).{0,10}/)}`));
   }));
 });
@@ -212,4 +230,9 @@ test('install: hidden when installed, dismissed, or not possible', () => {
   assertEqual(installPrompt({ standalone: true, dismissed: false, canPrompt: true, ios: true }), null);
   assertEqual(installPrompt({ standalone: false, dismissed: true, canPrompt: true, ios: false }), null);
   assertEqual(installPrompt({ standalone: false, dismissed: false, canPrompt: false, ios: false }), null);
+});
+
+test('app: a partner\'s year-less checkmarks count as 2027', () => {
+  const el = renderToday(new Date(2027, 0, 4, 8), {}, SETTINGS, withPartners(partner('Anna', { 'w01d1-nt': { done: true, t: 1 } })));
+  assertIncludes(rowFor(el, 'Luke 1').textContent, 'Anna');
 });

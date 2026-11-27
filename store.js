@@ -43,9 +43,26 @@ function mergeProgress(a, b) {
   return out;
 }
 
+// Checkmarks saved before years existed ("w01d1-nt") belong to 2027.
+function withYears(p) {
+  const out = {};
+  Object.keys(p).forEach(id => {
+    const full = /^w\d\dd[1-5]-/.test(id) ? `2027-${id}` : id;
+    out[full] = out[full] ? mergeProgress({ x: out[full] }, { x: p[id] }).x : p[id];
+  });
+  return out;
+}
+
+function readProgressKey(key) {
+  const p = readJSON(key, {});
+  if (!isPlainObject(p)) return {};
+  const fixed = withYears(p);
+  if (Object.keys(fixed).some(id => !(id in p))) writeJSON(key, fixed);
+  return fixed;
+}
+
 function getProgress() {
-  const p = readJSON(KEYS.progress, {});
-  return isPlainObject(p) ? p : {};
+  return readProgressKey(KEYS.progress);
 }
 
 function replaceProgress(p) {
@@ -53,8 +70,7 @@ function replaceProgress(p) {
 }
 
 function getPending() {
-  const p = readJSON(KEYS.pending, {});
-  return isPlainObject(p) ? p : {};
+  return readProgressKey(KEYS.pending);
 }
 
 function setDone(id, done, now = Date.now()) {
@@ -114,6 +130,6 @@ function catchUpIds(progress, today) {
   return allItemIdsBefore(today).filter(id => !isDone(progress, id));
 }
 
-function weekDoneCount(progress, week) {
-  return weekItemIds(week).filter(id => isDone(progress, id)).length;
+function weekDoneCount(progress, year, week) {
+  return weekItemIds(year, week).filter(id => isDone(progress, id)).length;
 }
