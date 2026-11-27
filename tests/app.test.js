@@ -39,9 +39,9 @@ test('app: today on a reading day', () => {
   assertEqual(ticks[0].getAttribute('aria-pressed'), 'false');
   el.querySelectorAll('.ref').forEach(r => assert(!r.closest('a'), 'reference text must not be a link'));
   assertEqual(el.querySelectorAll('a.read-online').length, 3);
-  assertEqual(el.querySelector('a.read-online').getAttribute('href'), 'https://ref.ly/Lk1');
+  assertEqual(el.querySelector('a.read-online').getAttribute('href'), 'https://www.esv.org/verses/Luke+1/');
   const stale = renderToday(new Date(2027, 0, 4, 8), {}, { translation: 'kjv', showLinks: true }, NO_SYNC);
-  assertEqual(stale.querySelector('a.read-online').getAttribute('href'), 'https://ref.ly/Lk1');
+  assertEqual(stale.querySelector('a.read-online').getAttribute('href'), 'https://www.esv.org/verses/Luke+1/');
 });
 
 test('app: done readings show pressed', () => {
@@ -252,8 +252,3 @@ test('app: sign-up form shows the disclaimer above its button', () => withEndpoi
   assert(note.compareDocumentPosition(form.querySelector('button[type="submit"]')) & Node.DOCUMENT_POSITION_FOLLOWING, 'disclaimer sits above the button');
 }));
 
-test('app: reading links use the Android form only on Android', () => {
-  const href = s => renderToday(new Date(2027, 0, 4, 8), {}, s, NO_SYNC).querySelector('a.read-online').getAttribute('href');
-  assertEqual(href({ showLinks: true, android: false }), 'https://ref.ly/Lk1');
-  assert(href({ showLinks: true, android: true }).startsWith('intent://ref.ly/Lk1#Intent;'), 'Android link');
-});

@@ -137,8 +137,8 @@ function topBar(syncState) {
 
 function readingRow(item, done, partners, settings) {
   const links = settings.showLinks
-    ? bibliaLinks(item.ref).map(l =>
-      h('a', { class: 'read-online', href: appLink(l.url, !!settings.android), target: '_blank', rel: 'noopener', 'aria-label': `Read ${l.label} online` }, icon('link')))
+    ? passageLinks(item.ref).map(l =>
+      h('a', { class: 'read-online', href: l.url, target: '_blank', rel: 'noopener', 'aria-label': `Read ${l.label} online` }, icon('link')))
     : [];
   return h('li', { class: trackClass(item.track) },
     h('button', { class: 'tick', type: 'button', 'aria-pressed': String(done), 'aria-label': `Mark ${displayRef(item.ref)} read`, dataset: { id: item.id } },
@@ -453,8 +453,7 @@ function render() {
   if (!app) return;
   const now = appNow(location.search);
   const route = parseRoute(location.hash);
-  const progress = getProgress(), state = getSyncState();
-  const settings = Object.assign(getSettings(), { android: isAndroid(navigator.userAgent) });
+  const progress = getProgress(), settings = getSettings(), state = getSyncState();
   const screens = {
     today: () => renderToday(now, progress, settings, state),
     week: () => renderWeek(route.year || currentYear(now), route.week, now, progress, settings, state),

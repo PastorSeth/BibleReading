@@ -203,7 +203,7 @@ A heavy-bordered square you press like a pen.
 - **Focus:** 3px ink outline, 3px offset.
 
 ### Reading Row
-- Tick box left, then the reference (Headline), then a 14px secondary-ink line with track name and a quiet 14px external-link icon (ref.ly online link, hidden when links are switched off). Partner names stack on the right at 13px, each with a 14px halftone swatch; initials with 3+ partners, "+N" past three.
+- Tick box left, then the reference (Headline), then a 14px secondary-ink line with track name and a quiet 14px external-link icon (ESV.org online link, hidden when links are switched off). Partner names stack on the right at 13px, each with a 14px halftone swatch; initials with 3+ partners, "+N" past three.
 - Rows are separated by 1px rule hairlines; the list opens with a 2px ink rule.
 
 ### Week Grid
@@ -239,7 +239,7 @@ A heavy-bordered square you press like a pen.
 - **Do** use a track ink only for a done reading, its grid cell, its plan dot, or its key.
 - **Do** draw a partner's marks as a halftone of the track ink (dots, diagonal, lines, in that order); keep your own marks solid.
 - **Do** keep references at 26px bold and the date as the largest text on the screen.
-- **Do** keep the online-link icon small and in secondary ink (at least 3:1), pointing at ref.ly (no version), and hide it entirely when links are switched off.
+- **Do** keep the online-link icon small and in secondary ink (at least 3:1), pointing at ESV.org /verses/ pages, and hide it entirely when links are switched off.
 - **Do** honor reduced motion: the tick-box refresh becomes an instant change.
 
 ### Don't:
