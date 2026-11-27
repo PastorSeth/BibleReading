@@ -1,0 +1,321 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-27T00:39:18+00:00",
+  "title": "Design System: Bible Reading 2027",
+  "extensions": {
+    "colorMeta": {
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#1E1F1F",
+        "tonalRamp": [
+          "#262727",
+          "#444646",
+          "#626565",
+          "#808484",
+          "#9FA2A2",
+          "#BFC0C0",
+          "#D8D9D9",
+          "#F2F2F2"
+        ]
+      },
+      "ink-2": {
+        "role": "neutral",
+        "displayName": "Secondary Ink",
+        "canonical": "#474A49",
+        "tonalRamp": [
+          "#262726",
+          "#444645",
+          "#626564",
+          "#7F8583",
+          "#9FA2A1",
+          "#BEC0C0",
+          "#D8D9D9",
+          "#F2F2F2"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "E-Paper",
+        "canonical": "#E7E7E2",
+        "tonalRamp": [
+          "#282824",
+          "#4A4A40",
+          "#6C6C5B",
+          "#8E8E76",
+          "#A8A899",
+          "#C3C3BB",
+          "#DBDBD7",
+          "#F3F3F2"
+        ]
+      },
+      "field": {
+        "role": "neutral",
+        "displayName": "Field White",
+        "canonical": "#F1F1ED",
+        "tonalRamp": [
+          "#292923",
+          "#4B4B3F",
+          "#6E6E59",
+          "#919173",
+          "#ABAB97",
+          "#C5C5BA",
+          "#DCDCD6",
+          "#F3F3F2"
+        ]
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Rule Grey",
+        "canonical": "#B5B6B0",
+        "tonalRamp": [
+          "#272725",
+          "#464743",
+          "#666760",
+          "#85877D",
+          "#A3A49E",
+          "#C0C1BD",
+          "#D9DAD8",
+          "#F2F2F2"
+        ]
+      },
+      "faint": {
+        "role": "neutral",
+        "displayName": "Faint Grey",
+        "canonical": "#CFD0CA",
+        "tonalRamp": [
+          "#272825",
+          "#474842",
+          "#67695E",
+          "#87897B",
+          "#A4A59C",
+          "#C1C2BD",
+          "#DADAD7",
+          "#F2F3F2"
+        ]
+      },
+      "nt-slate-teal": {
+        "role": "primary",
+        "displayName": "Slate Teal",
+        "canonical": "#3F6E6C",
+        "tonalRamp": [
+          "#202C2C",
+          "#375251",
+          "#4C7B79",
+          "#61A4A1",
+          "#8BB6B4",
+          "#B3CBCA",
+          "#D3DFDE",
+          "#F1F4F4"
+        ]
+      },
+      "ot-faded-brick": {
+        "role": "secondary",
+        "displayName": "Faded Brick",
+        "canonical": "#95533F",
+        "tonalRamp": [
+          "#2F211D",
+          "#593A31",
+          "#865140",
+          "#B46750",
+          "#C18F80",
+          "#D1B6AD",
+          "#E2D4D0",
+          "#F5F1F0"
+        ]
+      },
+      "wis-dusty-ochre": {
+        "role": "tertiary",
+        "displayName": "Dusty Ochre",
+        "canonical": "#85703A",
+        "tonalRamp": [
+          "#2F2A1E",
+          "#584D31",
+          "#857242",
+          "#B39752",
+          "#C0AE81",
+          "#D1C7AE",
+          "#E1DDD0",
+          "#F5F3F0"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "The date on Today and the week title; the largest text on any screen."
+      },
+      "headline": {
+        "displayName": "Reference",
+        "purpose": "Bible references in reading rows."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Section headings and Plan week summaries."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Sequence line, settings rows, button text at 700."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Track names, sync state, meta counts, form labels, text buttons."
+      },
+      "label-sm": {
+        "displayName": "Label small",
+        "purpose": "Grid labels, partner names, key; tab captions at 12px."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "tick-refresh",
+        "value": "260ms steps(1, end)",
+        "purpose": "Tick box flashes ink then settles to track ink (tick) or paper (untick)."
+      },
+      {
+        "name": "check-draw",
+        "value": "200ms 120ms steps(4, end)",
+        "purpose": "Check stroke draws in 4 discrete steps after the ink flash. Both disabled under prefers-reduced-motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sheet-on-desk",
+        "value": "600px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Tick Box",
+      "kind": "custom",
+      "refersTo": "tick-box",
+      "description": "Heavy-bordered square for marking a reading done; flashes ink, then settles to the track ink as the check draws in 4 steps.",
+      "html": "<div style=\"display:flex;gap:12px\"><button class=\"ds-tick\" aria-pressed=\"false\" aria-label=\"Luke 3\"></button><button class=\"ds-tick ds-nt\" aria-pressed=\"true\" aria-label=\"Luke 3\"><svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" fill=\"none\" stroke=\"#E7E7E2\" stroke-width=\"3\" stroke-linecap=\"square\"><path d=\"M5 12.5l4.5 4.5L19 7.5\"/></svg></button><button class=\"ds-tick ds-ot\" aria-pressed=\"true\"><svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" fill=\"none\" stroke=\"#E7E7E2\" stroke-width=\"3\" stroke-linecap=\"square\"><path d=\"M5 12.5l4.5 4.5L19 7.5\"/></svg></button><button class=\"ds-tick ds-wis\" aria-pressed=\"true\"><svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" fill=\"none\" stroke=\"#E7E7E2\" stroke-width=\"3\" stroke-linecap=\"square\"><path d=\"M5 12.5l4.5 4.5L19 7.5\"/></svg></button></div>",
+      "css": ":root{--paper:#E7E7E2;--ink:#1E1F1F;--ink-2:#474A49;--rule:#B5B6B0;--faint:#CFD0CA;--field:#F1F1ED;--nt:#3F6E6C;--ot:#95533F;--wis:#85703A;--face:'Atkinson Hyperlegible','Avenir Next','Segoe UI',Roboto,sans-serif;} .ds-nt{--c:var(--nt)}.ds-ot{--c:var(--ot)}.ds-wis{--c:var(--wis)} .ds-tick{all:unset;width:36px;height:36px;border:2.5px solid var(--ink);display:grid;place-items:center;cursor:pointer;background:var(--paper)} .ds-tick[aria-pressed=\"true\"]{background:var(--c);border-color:var(--c)} .ds-tick:active{background:var(--ink);border-color:var(--ink)} .ds-tick:focus-visible{outline:3px solid var(--ink);outline-offset:3px}"
+    },
+    {
+      "name": "Reading Row",
+      "kind": "custom",
+      "refersTo": "reading-ref",
+      "description": "Tick box, 26px bold reference, track name with a quiet ESV link icon, partner swatch on the right.",
+      "html": "<ul class=\"ds-readings\"><li class=\"ds-nt\"><span class=\"ds-box\"></span><div class=\"ds-what\"><div class=\"ds-ref\">Luke 3</div><div class=\"ds-track\">New Testament <a href=\"#\" class=\"ds-link\" aria-label=\"Read online\"><svg viewBox=\"0 0 16 16\" width=\"14\" height=\"14\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\"><path d=\"M9 3h4v4M13 3 7.5 8.5M11 9.5V13H3V5h3.5\"/></svg></a></div></div><span class=\"ds-who\"><i class=\"ds-swatch ds-pat-dots\"></i>Anna</span></li></ul>",
+      "css": ":root{--paper:#E7E7E2;--ink:#1E1F1F;--ink-2:#474A49;--rule:#B5B6B0;--faint:#CFD0CA;--field:#F1F1ED;--nt:#3F6E6C;--ot:#95533F;--wis:#85703A;--face:'Atkinson Hyperlegible','Avenir Next','Segoe UI',Roboto,sans-serif;} .ds-nt{--c:var(--nt)} .ds-readings{list-style:none;padding:0;margin:0;border-top:2px solid var(--ink);font-family:var(--face);color:var(--ink);background:var(--paper)} .ds-readings li{display:flex;align-items:center;gap:16px;padding:14px 0;border-bottom:1px solid var(--rule)} .ds-box{width:36px;height:36px;border:2.5px solid var(--ink);box-sizing:border-box;flex:none} .ds-what{flex:1} .ds-ref{font-size:26px;font-weight:700;letter-spacing:-.01em;line-height:1.1} .ds-track{font-size:14px;color:var(--ink-2);margin-top:4px;display:flex;gap:12px;align-items:center} .ds-link{color:var(--ink-2);display:inline-flex;padding:6px;margin:-6px -2px} .ds-link:focus-visible{outline:3px solid var(--ink);outline-offset:3px} .ds-who{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-2)} .ds-swatch{width:14px;height:14px;outline:1px solid var(--c);outline-offset:-1px} .ds-pat-dots{background:repeating-conic-gradient(var(--c) 0 25%,transparent 0 50%) 0 0/4px 4px}"
+    },
+    {
+      "name": "Halftone Partner Swatches",
+      "kind": "custom",
+      "refersTo": "week-cell",
+      "description": "Solid is you; dots, diagonal and lines are partners one, two and three, in the track ink.",
+      "html": "<div class=\"ds-sw ds-ot\"><i class=\"ds-solid\"></i><i class=\"ds-dots\"></i><i class=\"ds-diag\"></i><i class=\"ds-lines\"></i></div>",
+      "css": ":root{--paper:#E7E7E2;--ink:#1E1F1F;--ink-2:#474A49;--rule:#B5B6B0;--faint:#CFD0CA;--field:#F1F1ED;--nt:#3F6E6C;--ot:#95533F;--wis:#85703A;--face:'Atkinson Hyperlegible','Avenir Next','Segoe UI',Roboto,sans-serif;} .ds-ot{--c:var(--ot)} .ds-sw{display:flex;gap:10px;background:var(--paper);padding:8px} .ds-sw i{width:28px;height:28px;outline:1px solid var(--c);outline-offset:-1px} .ds-solid{background:var(--c)} .ds-dots{background:repeating-conic-gradient(var(--c) 0 25%,transparent 0 50%) 0 0/4px 4px} .ds-diag{background:repeating-linear-gradient(45deg,var(--c) 0 1.5px,transparent 1.5px 4px)} .ds-lines{background:repeating-linear-gradient(0deg,var(--c) 0 1.5px,transparent 1.5px 4px)}"
+    },
+    {
+      "name": "Week Grid Cells",
+      "kind": "custom",
+      "refersTo": "week-cell",
+      "description": "Split cell: your half solid, partner half halftone; today's column outlined in ink.",
+      "html": "<div class=\"ds-row ds-nt\"><span class=\"ds-cell\"><i class=\"ds-on\"></i><i class=\"ds-her\"></i></span><span class=\"ds-cell ds-now\"><i class=\"ds-on\"></i><i></i></span><span class=\"ds-cell\"><i></i><i></i></span></div>",
+      "css": ":root{--paper:#E7E7E2;--ink:#1E1F1F;--ink-2:#474A49;--rule:#B5B6B0;--faint:#CFD0CA;--field:#F1F1ED;--nt:#3F6E6C;--ot:#95533F;--wis:#85703A;--face:'Atkinson Hyperlegible','Avenir Next','Segoe UI',Roboto,sans-serif;} .ds-nt{--c:var(--nt)} .ds-row{display:grid;grid-template-columns:repeat(3,56px);gap:5px;background:var(--paper);padding:8px} .ds-cell{height:28px;border:1.5px solid var(--faint);display:grid;grid-template-columns:1fr 1fr} .ds-cell i:first-child{border-right:1px solid var(--faint)} .ds-cell.ds-now{border-color:var(--ink)} .ds-on{background:var(--c)} .ds-her{background:repeating-conic-gradient(var(--c) 0 25%,transparent 0 50%) 0 0/4px 4px}"
+    },
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Ink-filled square button; one per form.",
+      "html": "<button class=\"ds-btn ds-btn-primary\">Sign in</button>",
+      "css": ":root{--paper:#E7E7E2;--ink:#1E1F1F;--ink-2:#474A49;--rule:#B5B6B0;--faint:#CFD0CA;--field:#F1F1ED;--nt:#3F6E6C;--ot:#95533F;--wis:#85703A;--face:'Atkinson Hyperlegible','Avenir Next','Segoe UI',Roboto,sans-serif;} .ds-btn{font-family:var(--face);font-size:16px;font-weight:700;border:2px solid var(--ink);border-radius:0;padding:10px 16px;cursor:pointer} .ds-btn-primary{background:var(--ink);color:var(--paper)} .ds-btn:focus-visible{outline:3px solid var(--ink);outline-offset:3px} .ds-btn:disabled{opacity:.5;cursor:default}"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Default square button: ink border on paper.",
+      "html": "<button class=\"ds-btn ds-btn-outline\">Add partner</button>",
+      "css": ":root{--paper:#E7E7E2;--ink:#1E1F1F;--ink-2:#474A49;--rule:#B5B6B0;--faint:#CFD0CA;--field:#F1F1ED;--nt:#3F6E6C;--ot:#95533F;--wis:#85703A;--face:'Atkinson Hyperlegible','Avenir Next','Segoe UI',Roboto,sans-serif;} .ds-btn{font-family:var(--face);font-size:16px;font-weight:700;border:2px solid var(--ink);border-radius:0;padding:10px 16px;cursor:pointer} .ds-btn-outline{background:transparent;color:var(--ink)} .ds-btn:focus-visible{outline:3px solid var(--ink);outline-offset:3px}"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "Field White cut-out with a 2px ink border and a 14px label above.",
+      "html": "<label class=\"ds-field\">Username<input value=\"seth\"></label>",
+      "css": ":root{--paper:#E7E7E2;--ink:#1E1F1F;--ink-2:#474A49;--rule:#B5B6B0;--faint:#CFD0CA;--field:#F1F1ED;--nt:#3F6E6C;--ot:#95533F;--wis:#85703A;--face:'Atkinson Hyperlegible','Avenir Next','Segoe UI',Roboto,sans-serif;} .ds-field{display:grid;gap:6px;font-family:var(--face);font-size:14px;color:var(--ink-2);background:var(--paper);padding:8px} .ds-field input{font:inherit;font-size:17px;color:var(--ink);background:var(--field);border:2px solid var(--ink);border-radius:0;padding:10px 12px;appearance:none} .ds-field input:focus-visible{outline:3px solid var(--ink);outline-offset:3px}"
+    },
+    {
+      "name": "Tab Bar",
+      "kind": "nav",
+      "refersTo": "tab-bar",
+      "description": "Four tabs, line icons over 12px captions; active is ink and bold.",
+      "html": "<nav class=\"ds-tabs\"><a href=\"#\" class=\"ds-on\"><svg viewBox=\"0 0 24 24\"><rect x=\"4\" y=\"5\" width=\"16\" height=\"15\"/><path d=\"M4 10h16M9 3v4M15 3v4\"/></svg>Today</a><a href=\"#\"><svg viewBox=\"0 0 24 24\"><path d=\"M4 6h16M4 12h16M4 18h16\"/></svg>Week</a><a href=\"#\"><svg viewBox=\"0 0 24 24\"><rect x=\"4\" y=\"4\" width=\"6\" height=\"6\"/><rect x=\"14\" y=\"4\" width=\"6\" height=\"6\"/><rect x=\"4\" y=\"14\" width=\"6\" height=\"6\"/><rect x=\"14\" y=\"14\" width=\"6\" height=\"6\"/></svg>Plan</a><a href=\"#\"><svg viewBox=\"0 0 24 24\"><circle cx=\"12\" cy=\"9\" r=\"4\"/><path d=\"M5 20c1.5-3.5 4-5 7-5s5.5 1.5 7 5\"/></svg>Account</a></nav>",
+      "css": ":root{--paper:#E7E7E2;--ink:#1E1F1F;--ink-2:#474A49;--rule:#B5B6B0;--faint:#CFD0CA;--field:#F1F1ED;--nt:#3F6E6C;--ot:#95533F;--wis:#85703A;--face:'Atkinson Hyperlegible','Avenir Next','Segoe UI',Roboto,sans-serif;} .ds-tabs{display:grid;grid-template-columns:repeat(4,1fr);border-top:2px solid var(--ink);padding:8px 0 14px;background:var(--paper);font-family:var(--face)} .ds-tabs a{display:grid;justify-items:center;gap:3px;font-size:12px;color:var(--ink-2);text-decoration:none;padding:2px 0 4px} .ds-tabs a:hover{color:var(--ink)} .ds-tabs a:focus-visible{outline:3px solid var(--ink);outline-offset:3px} .ds-tabs a.ds-on{color:var(--ink);font-weight:700} .ds-tabs svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Plan Sheet",
+    "overview": "**Creative North Star: \"The Plan Sheet\"**\n\nThe app is the printed reading-plan sheet tucked inside a Bible, shown on an e-paper screen. It is a list you tick, not a feed you scroll: a large date, three large references, square boxes with heavy ink borders, and a small week grid. Everything sits on one flat sheet of grey e-paper, separated by solid ink rules instead of cards, panels or shadows. The physical Bible is the main event; the screen points to it and gets out of the way.\n\nDensity is calm and single-column (480px max). Color is rare and functional: three muted, Kaleido-style e-ink inks, one per reading track, appear only where a reading is done. A reading partner's marks are the same inks rendered as halftone patterns, so \"you\" and \"them\" read apart without labels. Motion is a single e-ink partial refresh on the tick box; nothing else moves.\n\nConfirmed rejections: a dark theme (light e-paper only), card stacks, streak flames and badges, photo heroes, red warnings about being behind, and anything churchy or ornate (stained glass, scrolls, parchment, calligraphy).",
+    "keyCharacteristics": [
+      "E-paper grey ground, near-black ink, flat solid rules (1px to 2.5px).",
+      "Square corners everywhere; no radius in the system.",
+      "Three muted track inks, used as fills for completed readings only.",
+      "Solid fill is you; halftone pattern is a partner.",
+      "One typeface, Atkinson Hyperlegible, at 400 and 700.",
+      "One signature motion: the tick box's ink flash and stepped check."
+    ],
+    "rules": [
+      {
+        "name": "The Ink-Means-Done Rule",
+        "body": "A track color appears only where a reading is done (a tick, a cell, a plan dot) or as the key for one. It never decorates headings, links, buttons or backgrounds.",
+        "section": "colors"
+      },
+      {
+        "name": "The Solid-Is-You Rule",
+        "body": "Your marks are solid fills of the track ink. A partner's marks are the same ink as a halftone pattern (dots, diagonal, lines), one pattern per partner in the order they were added. Never distinguish people by a new hue.",
+        "section": "colors"
+      },
+      {
+        "name": "The Quiet-About-Behind Rule",
+        "body": "Being behind is a plain underlined line in ink (\"6 readings to catch up\"), never a colored alert, badge or count bubble.",
+        "section": "colors"
+      },
+      {
+        "name": "The Two-Weights Rule",
+        "body": "Hierarchy comes from size and 400/700 only. No italics, no uppercase labels, no letter-spaced small caps.",
+        "section": "typography"
+      },
+      {
+        "name": "The Reference-Is-Biggest-in-Its-Row Rule",
+        "body": "In any list of readings, the reference is the dominant text; track name and links sit under it at 14px in secondary ink.",
+        "section": "typography"
+      },
+      {
+        "name": "The Rule-Weight Rule",
+        "body": "To separate or group, change the rule, not the surface. Heavier ink rules start things; light grey hairlines divide within them.",
+        "section": "elevation"
+      },
+      {
+        "name": "The No-Smooth-Gradient Rule",
+        "body": "No smooth or tonal gradients and no shadows. Hard-stop repeating gradients are allowed because they are how the halftone patterns and the select chevron are drawn; those are print devices, not lighting.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** keep every surface on E-Paper with square corners and solid rules (2px ink to open, 1px rule grey to divide).",
+      "**Do** use a track ink only for a done reading, its grid cell, its plan dot, or its key.",
+      "**Do** draw a partner's marks as a halftone of the track ink (dots, diagonal, lines, in that order); keep your own marks solid.",
+      "**Do** keep references at 26px bold and the date as the largest text on the screen.",
+      "**Do** keep the online-link icon small and in secondary ink (at least 3:1), always to ESV, and hide it entirely when links are switched off.",
+      "**Do** honor reduced motion: the tick-box refresh becomes an instant change."
+    ],
+    "donts": [
+      "**Don't** add a dark theme; the system is e-paper light only.",
+      "**Don't** use shadows, blur, smooth gradients, or rounded corners.",
+      "**Don't** add cards, streaks, badges, flames, count bubbles or red warnings; being behind is a quiet ink line.",
+      "**Don't** set text in Dusty Ochre (3.9:1); of the track inks, only Faded Brick carries text, and only for form errors.",
+      "**Don't** introduce new hues to tell partners apart; vary the pattern, not the color.",
+      "**Don't** add anything churchy or ornate: no stained glass, scrolls, parchment, calligraphy or decorative crosses.",
+      "**Don't** show scripture text or a memory verse; the app points to the printed Bible."
+    ]
+  }
+}
