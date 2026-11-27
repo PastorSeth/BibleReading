@@ -9,7 +9,8 @@
 
 let fetchImpl = null;
 let API_TIMEOUT_MS = 20000; // give up on a request after 20 seconds
-let syncState = { status: 'off', partners: [], requests: [] };
+// loading: true while the server is being asked (the Account page shows it).
+let syncState = { status: 'off', loading: false, partners: [], requests: [] };
 const syncListeners = [];
 let syncInFlight = null;
 let syncTimer = null;
@@ -80,6 +81,16 @@ async function runSync(uploadAll) {
     if (syncState.status !== 'signed-out-expired') setSyncState({ status: 'off', partners: [], requests: [] });
     return syncState;
   }
+  setSyncState({ loading: true });
+  try {
+    await talkToServer(account, uploadAll);
+  } finally {
+    setSyncState({ loading: false });
+  }
+  return syncState;
+}
+
+async function talkToServer(account, uploadAll) {
   const auth = { username: account.username, token: account.token };
   // If the person signed out (or in as someone else) while we waited, drop this result.
   const stillSameAccount = () => { const a = getAccount(); return !!a && a.token === auth.token; };
@@ -99,6 +110,7 @@ async function runSync(uploadAll) {
   replaceProgress(mergeProgress(getProgress(), loaded.progress || {}));
   setSyncState({
     status: hasPending() ? 'pending' : 'synced',
+    loading: false,
     partners: loaded.partners || [],
     requests: loaded.requests || [],
   });

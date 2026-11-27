@@ -158,3 +158,23 @@ test('sync: listeners only hear real changes', () => {
   setSyncState({ status: before.status, partners: before.partners, requests: before.requests });
   assertEqual(n, 0);
 });
+
+test('sync: loading is on while the server is asked, and off after, even when it fails', async () => {
+  let answer;
+  const server = happyServer();
+  await withFakeServer(body => (body.action === 'load' ? new Promise(r => { answer = () => r(server(body)); }) : server(body)), async () => {
+    saveAccount({ username: 'Seth', token: 'tok' });
+    const run = syncNow();
+    await new Promise(r => setTimeout(r, 0));
+    assertEqual(getSyncState().loading, true);
+    answer();
+    await run;
+    assertEqual(getSyncState().loading, false);
+    assertEqual(getSyncState().partners.map(p => p.username), ['Anna']);
+  });
+  await withFakeServer(async () => { throw new Error('offline'); }, async () => {
+    saveAccount({ username: 'Seth', token: 'tok' });
+    await syncNow();
+    assertEqual(getSyncState().loading, false);
+  });
+});

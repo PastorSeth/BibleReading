@@ -377,12 +377,16 @@ function forgotHref(username) {
    button redrawn mid-wait keeps showing it. */
 const waiting = new Set();
 
+function waitMark() {
+  return h('span', { class: 'wait', 'aria-hidden': 'true' }, h('i'), h('i'), h('i'));
+}
+
 function showWaiting(button, on) {
   if (on === button.classList.contains('busy')) return;
   if (on) {
     button.dataset.label = button.textContent;
     button.textContent = button.dataset.waitLabel;
-    button.append(h('span', { class: 'wait', 'aria-hidden': 'true' }, h('i'), h('i'), h('i')));
+    button.append(waitMark());
     button.setAttribute('aria-busy', 'true');
   } else {
     button.textContent = button.dataset.label;
@@ -427,6 +431,8 @@ function accountSection(account, syncState) {
       h('section', null, h('h2', { text: 'Your account' }), h('p', null, 'Signed in as ', h('b', { text: account.username }))),
       h('section', null, h('h2', { text: 'Reading partners' }),
         h('p', { class: 'muted', text: "You see each other's checkmarks once you've both added each other." }),
+        syncState.loading ? h('p', { class: 'loading', role: 'status' },
+          partners.length || requests.length ? 'Checking for updates' : 'Loading reading partners', waitMark()) : null,
         partners.length || requests.length ? h('ul', { class: 'people' }, requests, partners) : null,
         h('form', { class: 'add-partner' }, field('Add a partner', 'partner', { placeholder: 'Their username', required: true }),
           waitButton({ class: 'btn', type: 'submit', text: 'Add' }, 'addPartner', 'Adding'), h('p', { class: 'error', role: 'alert' }))),
@@ -716,6 +722,12 @@ async function handleSubmit(form) {
   else showError(form, res);
 }
 
+// Opening the Account tab fetches fresh partners and requests.
+function screenOpened(name) {
+  if (name !== 'account' || !syncEnabled() || !getAccount()) return null;
+  return syncNow();
+}
+
 function formFocused() {
   const el = document.activeElement;
   return !!el && ['INPUT', 'SELECT', 'TEXTAREA'].includes(el.tagName);
@@ -764,7 +776,12 @@ function boot() {
     handleSubmit(e.target);
   });
 
-  window.addEventListener('hashchange', () => { confirmingCatchUp = false; render(); window.scrollTo(0, 0); });
+  window.addEventListener('hashchange', () => {
+    confirmingCatchUp = false;
+    render();
+    window.scrollTo(0, 0);
+    screenOpened(parseRoute(location.hash).name);
+  });
   const safeRender = () => { if (!formFocused() && !formHasValues(app)) render(); };
   onSyncChange(safeRender);
   document.addEventListener('visibilitychange', () => {

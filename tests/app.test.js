@@ -485,3 +485,28 @@ test('waiting: the wait lasts as long as the server call, even through a re-rend
     doc.remove();
   }
 });
+
+test('partners: the account page shows when reading partners are loading', () => withEndpoint('https://example.test/exec', '', () => {
+  const me = { username: 'Seth', token: 't' };
+  const first = renderAccount(SETTINGS, me, { status: 'synced', loading: true, partners: [], requests: [] });
+  const line = first.querySelector('.loading');
+  assertIncludes(line.textContent, 'Loading reading partners');
+  assertEqual(line.getAttribute('role'), 'status');
+  assertEqual(line.querySelectorAll('.wait i').length, 3);
+  const again = renderAccount(SETTINGS, me, { status: 'synced', loading: true, partners: [partner('Anna')], requests: [] });
+  assertIncludes(again.querySelector('.loading').textContent, 'Checking for updates');
+  assertIncludes(again.textContent, 'Anna', 'known partners stay on screen while it checks');
+  const done = renderAccount(SETTINGS, me, { status: 'synced', loading: false, partners: [partner('Anna')], requests: [] });
+  assertEqual(done.querySelector('.loading'), null);
+}));
+
+test('partners: opening the Account tab asks the server for fresh partners', async () => {
+  const asked = [];
+  await withFakeServer(body => { asked.push(body.action); return happyServer()(body); }, async () => {
+    assertEqual(screenOpened('account'), null, 'no account, nothing to ask');
+    saveAccount({ username: 'Seth', token: 'tok' });
+    assertEqual(screenOpened('today'), null, 'other tabs do not ask');
+    await screenOpened('account');
+    assertEqual(asked, ['load']);
+  });
+});
