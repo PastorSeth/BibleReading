@@ -1,0 +1,44 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          "docs/mockups/a-ribbon.html"
+        ],
+        "createdAt": "2026-11-27T00:39:50.191Z",
+        "reason": "Claude: rejected or superseded mockup / decision-round sketch kept as history; Seth chose the e-ink Plan Sheet recorded in DESIGN.md"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          "docs/mockups/c-lamplight.html"
+        ],
+        "createdAt": "2026-11-27T00:39:50.206Z",
+        "reason": "Claude: rejected or superseded mockup / decision-round sketch kept as history; Seth chose the e-ink Plan Sheet recorded in DESIGN.md"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/assigned.html"
+        ],
+        "createdAt": "2026-11-27T00:39:50.221Z",
+        "reason": "Claude: rejected or superseded mockup / decision-round sketch kept as history; Seth chose the e-ink Plan Sheet recorded in DESIGN.md"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/model-pick.html"
+        ],
+        "createdAt": "2026-11-27T00:39:50.236Z",
+        "reason": "Claude: rejected or superseded mockup / decision-round sketch kept as history; Seth chose the e-ink Plan Sheet recorded in DESIGN.md"
+      }
+    ]
+  }
+}
