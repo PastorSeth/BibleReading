@@ -251,3 +251,9 @@ test('app: sign-up form shows the disclaimer above its button', () => withEndpoi
   assertEqual(note.textContent, "✧Disclaimer✧ This is a small, free app. Not a bank with top tier encryption. Choose a PIN you don't use everywhere else.");
   assert(note.compareDocumentPosition(form.querySelector('button[type="submit"]')) & Node.DOCUMENT_POSITION_FOLLOWING, 'disclaimer sits above the button');
 }));
+
+test('app: reading links use the Android form only on Android', () => {
+  const href = s => renderToday(new Date(2027, 0, 4, 8), {}, s, NO_SYNC).querySelector('a.read-online').getAttribute('href');
+  assertEqual(href({ showLinks: true, android: false }), 'https://ref.ly/Lk1');
+  assert(href({ showLinks: true, android: true }).startsWith('intent://ref.ly/Lk1#Intent;'), 'Android link');
+});

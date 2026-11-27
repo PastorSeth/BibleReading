@@ -65,3 +65,18 @@ function bibliaLinks(ref) {
   });
   return links;
 }
+
+/* Android: plain ref.ly links don't open Logos there (no app-link file), so on
+   Android we use Chrome's "intent" link: it opens the Logos app if it's
+   installed and accepts the link, and otherwise goes to the normal web link. */
+const LOGOS_ANDROID_PACKAGE = 'com.logos.androidlogos';
+
+function isAndroid(userAgent) {
+  return /Android/i.test(String(userAgent || ''));
+}
+
+function appLink(url, android) {
+  if (!android) return url;
+  return `intent://${url.replace(/^https:\/\//, '')}#Intent;scheme=https;package=${LOGOS_ANDROID_PACKAGE};` +
+    `S.browser_fallback_url=${encodeURIComponent(url)};end`;
+}

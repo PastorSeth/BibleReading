@@ -59,3 +59,17 @@ test('links: displayRef', () => {
   assertEqual(displayRef('Malachi 3–4'), 'Malachi 3–4');
   assertEqual(displayRef('Deuteronomy 32:48-52; 34'), 'Deuteronomy 32:48–52; 34');
 });
+
+test('links: Android gets a link that tries the Logos app, then falls back', () => {
+  assertEqual(appLink('https://ref.ly/Lk3', false), 'https://ref.ly/Lk3');
+  assertEqual(appLink('https://ref.ly/Lk3', true),
+    'intent://ref.ly/Lk3#Intent;scheme=https;package=com.logos.androidlogos;S.browser_fallback_url=https%3A%2F%2Fref.ly%2FLk3;end');
+  assertEqual(appLink('https://ref.ly/Ex13.17-14.31', true),
+    'intent://ref.ly/Ex13.17-14.31#Intent;scheme=https;package=com.logos.androidlogos;S.browser_fallback_url=https%3A%2F%2Fref.ly%2FEx13.17-14.31;end');
+});
+
+test('links: isAndroid', () => {
+  assertEqual(isAndroid('Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/120 Mobile Safari/537.36'), true);
+  assertEqual(isAndroid('Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148'), false);
+  assertEqual(isAndroid('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/120 Safari/537.36'), false);
+});
