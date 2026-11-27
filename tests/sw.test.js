@@ -2,7 +2,8 @@ test('sw: app shell lists every app file', async () => {
   const sw = await (await fetch('../service-worker.js')).text();
   assert(/const CACHE_NAME = 'bible-reading-2027-v\d+';/.test(sw), 'CACHE_NAME is versioned');
   ['./', 'index.html', 'style.css', 'readings.js', 'plan.js', 'links.js', 'store.js', 'sync-config.js', 'sync.js',
-    'app.js', 'manifest.json', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png']
+    'app.js', 'manifest.json', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png',
+    'fonts/AtkinsonHyperlegible-Regular.woff2', 'fonts/AtkinsonHyperlegible-Bold.woff2']
     .forEach(f => assert(sw.includes(`'${f}'`), `service worker should cache ${f}`));
 });
 
