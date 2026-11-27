@@ -3,9 +3,10 @@
    Biblia.com link. These links are a quiet extra: the reading
    itself happens in a physical Bible.
 
-   Biblia link format: https://biblia.com/bible/esv/Exodus13.17-14.31
-   - Book names are written in full with spaces removed. (Never
-     abbreviate: "Jud" means Jude on Biblia, not Judges.)
+   Biblia link format: https://biblia.com/books/esv/Ex13.17-14.31
+   - Books use Biblia's short names (BOOK_ABBR below), each checked
+     against Biblia on 2026-11-26. Watch the look-alikes: Jud is Jude
+     and Jdg is Judges; Jn John, Jon Jonah, Joe Joel, Jos Joshua.
    - In the plan data, an en dash (–) after a verse means "through
      the end of that chapter" ("Exodus 13:17–14"); a hyphen (-) is a
      verse range ("Genesis 25:19-34").
@@ -15,6 +16,20 @@
 
 // Links always open the ESV (Seth's choice: one translation keeps it simple).
 const BIBLIA_VERSION = 'esv';
+
+const BOOK_ABBR = {
+  'Genesis': 'Ge', 'Exodus': 'Ex', 'Leviticus': 'Le', 'Numbers': 'Nu', 'Deuteronomy': 'Dt',
+  'Joshua': 'Jos', 'Judges': 'Jdg', 'Ruth': 'Ru', '1 Samuel': '1Sa', '2 Samuel': '2Sa',
+  '1 Kings': '1Ki', '2 Kings': '2Ki', 'Ezra': 'Ezr', 'Nehemiah': 'Ne', 'Esther': 'Es', 'Job': 'Job',
+  'Psalm': 'Ps', 'Proverbs': 'Pr', 'Isaiah': 'Is', 'Jeremiah': 'Je', 'Ezekiel': 'Eze', 'Daniel': 'Da',
+  'Hosea': 'Ho', 'Joel': 'Joe', 'Amos': 'Am', 'Jonah': 'Jon', 'Micah': 'Mic', 'Zechariah': 'Zec',
+  'Malachi': 'Mal', 'Matthew': 'Mt', 'Mark': 'Mk', 'Luke': 'Lk', 'John': 'Jn', 'Acts': 'Ac',
+  'Romans': 'Ro', '1 Corinthians': '1Co', '2 Corinthians': '2Co', 'Galatians': 'Ga', 'Ephesians': 'Eph',
+  'Philippians': 'Php', 'Colossians': 'Col', '1 Thessalonians': '1Th', '2 Thessalonians': '2Th',
+  '1 Timothy': '1Ti', '2 Timothy': '2Ti', 'Titus': 'Tt', 'Philemon': 'Phm', 'Hebrews': 'Heb',
+  'James': 'Jas', '1 Peter': '1Pe', '2 Peter': '2Pe', '1 John': '1Jn', '2 John': '2Jn', '3 John': '3Jn',
+  'Jude': 'Jud', 'Revelation': 'Re',
+};
 
 // Last verse of each chapter that a "through the end of chapter" reading reaches.
 const LAST_VERSE = { 'Exodus 14': 31, 'Joshua 6': 27, '1 Kings 17': 24 };
@@ -44,7 +59,7 @@ function bibliaLinks(ref) {
     if (named) book = named[1];
     links.push({
       label: displayRef(rest ? `${book} ${rest}` : book),
-      url: `https://biblia.com/bible/${BIBLIA_VERSION}/${book.replace(/ /g, '')}${bibliaPassage(book, rest)}`,
+      url: `https://biblia.com/books/${BIBLIA_VERSION}/${BOOK_ABBR[book] || book.replace(/ /g, '')}${bibliaPassage(book, rest)}`,
     });
   });
   return links;
