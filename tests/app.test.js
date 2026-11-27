@@ -166,3 +166,13 @@ test('app: ?date= previews another day', () => {
   assertEqual(appNow('', real), real);
   assertEqual(appNow('?date=nonsense', real), real);
 });
+
+test('app: screens never show "null" or "undefined"', () => {
+  const dates = [new Date(2026, 10, 26), new Date(2027, 0, 4, 8), new Date(2027, 0, 6, 8), new Date(2027, 0, 9),
+    new Date(2027, 11, 31, 8), new Date(2028, 0, 3)];
+  const states = [NO_SYNC, withPartners(partner('Anna', done('w01d1-nt')))];
+  dates.forEach(d => states.forEach(s => {
+    [renderToday(d, {}, SETTINGS, s), renderWeek(1, d, {}, SETTINGS, s), renderCatchUp(d, {}, SETTINGS, s), renderPlan(d, {})]
+      .forEach(el => assert(!/\bnull\b|\bundefined\b/.test(el.textContent), `${d.toDateString()}: ${el.textContent.match(/.{0,30}(null|undefined).{0,10}/)}`));
+  }));
+});

@@ -54,6 +54,14 @@ function h(tag, props, ...kids) {
   return el;
 }
 
+// Like el.append, but skips null/false (Element.append would print "null").
+function append(el, ...kids) {
+  kids.flat(Infinity).forEach(kid => {
+    if (kid !== null && kid !== undefined && kid !== false) el.append(kid);
+  });
+  return el;
+}
+
 function icon(name, cls) {
   const [viewBox, paths] = ICONS[name];
   const svg = document.createElementNS(SVG_NS, 'svg');
@@ -203,39 +211,39 @@ function renderToday(now, progress, settings, syncState) {
   const partners = mutualPartners(syncState);
   const root = h('div', { class: 'screen' }, h('header', null, topBar(syncState)));
   const main = h('main');
-  root.append(main);
+  append(root, main);
 
   if (day.status === 'before') {
-    root.querySelector('header').append(h('h1', { text: 'Starts Monday, January 4' }),
+    append(root.querySelector('header'), h('h1', { text: 'Starts Monday, January 4' }),
       h('p', { class: 'seq', text: `${plural(day.daysUntilStart, 'day')} to go` }));
-    main.append(h('h2', { text: 'The first day' }), previewList(1, 1),
+    append(main, h('h2', { text: 'The first day' }), previewList(1, 1),
       h('p', { class: 'catch' }, h('a', { href: '#/week/1', text: 'Preview week 1' })));
     return root;
   }
   if (day.status === 'after') {
     const read = Object.keys(progress).filter(id => isDone(progress, id)).length;
-    root.querySelector('header').append(h('h1', { text: 'The year is done' }),
+    append(root.querySelector('header'), h('h1', { text: 'The year is done' }),
       h('p', { class: 'seq', text: `You read ${read} of ${TOTAL_READINGS} readings.` }));
-    main.append(h('p', { class: 'catch' }, h('a', { href: '#/plan', text: 'Look back over the year' })));
+    append(main, h('p', { class: 'catch' }, h('a', { href: '#/plan', text: 'Look back over the year' })));
     return root;
   }
 
-  root.querySelector('header').append(h('h1', { text: longDate(now) }));
+  append(root.querySelector('header'), h('h1', { text: longDate(now) }));
   if (day.status === 'weekend') {
-    root.querySelector('header').append(h('p', { class: 'seq', text: 'Weekend. Catch up or rest.' }));
+    append(root.querySelector('header'), h('p', { class: 'seq', text: 'Weekend. Catch up or rest.' }));
     const behind = catchUpIds(progress, now);
     if (behind.length) {
-      main.append(h('h2', { text: 'To catch up' }),
+      append(main, h('h2', { text: 'To catch up' }),
         readingList(itemsForIds(behind.slice(0, 6)).flatMap(g => g.items), progress, partners, settings));
-      if (behind.length > 6) main.append(h('p', { class: 'catch' }, h('a', { href: '#/catchup', text: `See all ${behind.length}` })));
+      if (behind.length > 6) append(main, h('p', { class: 'catch' }, h('a', { href: '#/catchup', text: `See all ${behind.length}` })));
     }
-    main.append(h('h2', { text: `Monday, ${shortDate(dateFor(day.nextWeek, 1))}` }), previewList(day.nextWeek, 1));
-    main.append(weekGrid(day.week, now, progress, partners));
+    append(main, h('h2', { text: `Monday, ${shortDate(dateFor(day.nextWeek, 1))}` }), previewList(day.nextWeek, 1));
+    append(main, weekGrid(day.week, now, progress, partners));
     return root;
   }
 
-  root.querySelector('header').append(h('p', { class: 'seq', text: `Week ${day.week}, day ${day.weekday}` }));
-  main.append(readingList(readingsFor(day.week, day.weekday), progress, partners, settings),
+  append(root.querySelector('header'), h('p', { class: 'seq', text: `Week ${day.week}, day ${day.weekday}` }));
+  append(main, readingList(readingsFor(day.week, day.weekday), progress, partners, settings),
     weekGrid(day.week, now, progress, partners),
     catchUpLine(progress, now));
   return root;
@@ -254,10 +262,10 @@ function renderWeek(week, now, progress, settings, syncState) {
   const main = h('main');
   for (let d = 1; d <= 5; d++) {
     const isToday = today.status === 'reading' && today.week === week && today.weekday === d;
-    main.append(h('h2', { text: longDate(dateFor(week, d)) + (isToday ? ', today' : '') }),
+    append(main, h('h2', { text: longDate(dateFor(week, d)) + (isToday ? ', today' : '') }),
       readingList(readingsFor(week, d), progress, partners, settings));
   }
-  root.append(main);
+  append(root, main);
   return root;
 }
 
@@ -269,7 +277,7 @@ function renderPlan(now, progress) {
     const days = [1, 2, 3, 4, 5].map(d => h('li', null,
       h('span', { class: 'muted', text: dayName(dateFor(w, d)) }),
       readingsFor(w, d).map(r => h('span', { class: `${trackClass(r.track)}${isDone(progress, r.id) ? ' done' : ''}`, text: displayRef(r.ref) }))));
-    main.append(h('details', { open: w === openWeek },
+    append(main, h('details', { open: w === openWeek },
       h('summary', null, h('b', { text: `Week ${w}` }), h('span', { class: 'muted', text: `${shortDate(dateFor(w, 1))} to ${shortDate(dateFor(w, 5))}` }),
         h('span', { class: 'count', text: `${weekDoneCount(progress, w)} of 15` })),
       h('ul', { class: 'plan-days' }, days),
@@ -287,9 +295,9 @@ function renderCatchUp(now, progress, settings, syncState) {
   const partners = mutualPartners(syncState);
   const main = h('main');
   if (!ids.length) {
-    main.append(h('p', { class: 'empty', text: "You're all caught up." }), h('p', { class: 'catch' }, h('a', { href: '#/', text: 'Back to today' })));
+    append(main, h('p', { class: 'empty', text: "You're all caught up." }), h('p', { class: 'catch' }, h('a', { href: '#/', text: 'Back to today' })));
   } else {
-    itemsForIds(ids).forEach(g => main.append(h('h2', { text: longDate(dateFor(g.week, g.weekday)) }), readingList(g.items, progress, partners, settings)));
+    itemsForIds(ids).forEach(g => append(main, h('h2', { text: longDate(dateFor(g.week, g.weekday)) }), readingList(g.items, progress, partners, settings)));
   }
   return h('div', { class: 'screen' },
     h('header', null, topBar(syncState), h('h1', { text: 'Catch up' }),
