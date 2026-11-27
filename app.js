@@ -393,6 +393,33 @@ function formHasValues(root) {
   return [...root.querySelectorAll('form input')].some(i => i.type !== 'checkbox' && i.type !== 'hidden' && i.value !== '');
 }
 
+/* ---------- Install prompt ---------- */
+
+let deferredInstall = null; // Android/Chrome's saved install event
+
+function installEnv() {
+  const standalone = (typeof matchMedia === 'function' && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+  return {
+    standalone,
+    dismissed: localStorage.getItem('br27.installDismissed') === '1',
+    canPrompt: !!deferredInstall,
+    ios: /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1),
+  };
+}
+
+function installPrompt(env) {
+  if (env.standalone || env.dismissed || (!env.canPrompt && !env.ios)) return null;
+  const dismiss = h('button', { type: 'button', class: 'text-btn install-dismiss', text: 'Not now' });
+  if (env.canPrompt) {
+    return h('div', { class: 'install-note' },
+      h('p', { text: 'Install this app on your phone. It works offline and opens like any other app.' }),
+      h('div', { class: 'actions' }, h('button', { type: 'button', class: 'btn primary install', text: 'Install app' }), dismiss));
+  }
+  return h('div', { class: 'install-note' },
+    h('p', null, 'Install this app: in Safari, tap ', h('b', { text: 'Share' }), ', then ', h('b', { text: 'Add to Home Screen' }), '.'),
+    h('div', { class: 'actions' }, dismiss));
+}
+
 let renderTimer = null;
 
 function render() {
@@ -410,7 +437,12 @@ function render() {
   };
   const focusedId = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.id : null;
   const previewing = /[?&]date=/.test(location.search);
-  app.replaceChildren(...[previewing ? previewBanner(now) : null, screens[route.name](), tabBar(route, now)].filter(Boolean));
+  const screen = screens[route.name]();
+  if (route.name === 'today') {
+    const prompt = installPrompt(installEnv());
+    if (prompt) screen.querySelector('header').after(prompt);
+  }
+  app.replaceChildren(...[previewing ? previewBanner(now) : null, screen, tabBar(route, now)].filter(Boolean));
   if (focusedId) {
     const again = app.querySelector(`.tick[data-id="${focusedId}"]`);
     if (again) again.focus();
@@ -472,6 +504,12 @@ function boot() {
     const addBack = e.target.closest('[data-addback]');
     if (addBack) return addPartner(addBack.dataset.addback).then(render);
     if (e.target.closest('.signout')) return signOut().then(render);
+    if (e.target.closest('.install-dismiss')) { localStorage.setItem('br27.installDismissed', '1'); return render(); }
+    if (e.target.closest('button.install') && deferredInstall) {
+      const ev = deferredInstall;
+      deferredInstall = null;
+      return ev.prompt().then(() => ev.userChoice).finally(render);
+    }
     return undefined;
   });
   app.addEventListener('change', e => {
@@ -497,6 +535,8 @@ function boot() {
     if (document.visibilityState === 'visible') { safeRender(); scheduleSync(); }
   });
   window.addEventListener('online', scheduleSync);
+  window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredInstall = e; render(); });
+  window.addEventListener('appinstalled', () => { deferredInstall = null; render(); });
 
   render();
   if (syncEnabled() && getAccount()) syncNow();

@@ -161,6 +161,9 @@ details[open] summary .count { color: var(--ink); font-weight: 700; }
 
 .preview-note { margin: 0; padding: 10px 20px; font-size: 14px; background: var(--faint); border-bottom: 2px solid var(--ink); }
 
+.install-note { margin: 16px 20px 0; padding: 14px 16px; border: 2px solid var(--ink); font-size: 15px; }
+.install-note .actions { margin-top: 10px; }
+
 /* ---------- Tab bar ---------- */
 nav.tabs { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 2px solid var(--ink); padding: 8px 0 max(14px, env(safe-area-inset-bottom)); position: sticky; bottom: 0; background: var(--paper); }
 nav.tabs a { display: grid; justify-items: center; gap: 3px; font-size: 12px; color: var(--ink-2); text-decoration: none; padding: 2px 0 4px; }

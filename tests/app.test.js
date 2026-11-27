@@ -195,3 +195,21 @@ test('app: formHasValues', () => {
   box.querySelector('input').value = 'Seth';
   assertEqual(formHasValues(box), true);
 });
+
+test('install: Android gets a one-tap button', () => {
+  const el = installPrompt({ standalone: false, dismissed: false, canPrompt: true, ios: false });
+  assert(el.querySelector('button.install'), 'install button');
+  assert(el.querySelector('button.install-dismiss'), 'not-now button');
+});
+
+test('install: iPhone gets Share then Add to Home Screen', () => {
+  const el = installPrompt({ standalone: false, dismissed: false, canPrompt: false, ios: true });
+  assertIncludes(el.textContent, 'Add to Home Screen');
+  assert(!el.querySelector('button.install'), 'no install button on iPhone');
+});
+
+test('install: hidden when installed, dismissed, or not possible', () => {
+  assertEqual(installPrompt({ standalone: true, dismissed: false, canPrompt: true, ios: true }), null);
+  assertEqual(installPrompt({ standalone: false, dismissed: true, canPrompt: true, ios: false }), null);
+  assertEqual(installPrompt({ standalone: false, dismissed: false, canPrompt: false, ios: false }), null);
+});
