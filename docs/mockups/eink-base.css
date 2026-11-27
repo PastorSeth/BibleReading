@@ -1,0 +1,37 @@
+/* Shared e-ink world for the Plan Sheet variations. */
+:root {
+  --paper: #E7E7E2; --ink: #1E1F1F; --ink-2: #474A49; --rule: #B5B6B0; --faint: #CFD0CA;
+  --nt: #3F6E6C; --ot: #95533F; --wis: #85703A;
+  --face: 'Atkinson Hyperlegible', 'Avenir Next', 'Segoe UI', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; }
+::selection { background: var(--ink); color: var(--paper); }
+body { background: var(--paper); color: var(--ink); font-family: var(--face); -webkit-font-smoothing: antialiased; }
+.app { max-width: 430px; min-height: 100vh; margin: 0 auto; display: flex; flex-direction: column; }
+.nt { --c: var(--nt); } .ot { --c: var(--ot); } .wis { --c: var(--wis); }
+a { color: inherit; }
+
+/* Tick box with the e-ink partial-refresh moment. */
+.tick { all: unset; flex: none; width: 36px; height: 36px; border: 2.5px solid var(--ink); display: grid; place-items: center; cursor: pointer; }
+.tick:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+.tick svg { width: 24px; height: 24px; fill: none; stroke: var(--paper); stroke-width: 3; stroke-linecap: square; stroke-dasharray: 24; stroke-dashoffset: 24; }
+.tick[aria-pressed="true"] { background: var(--c); border-color: var(--c); }
+.tick[aria-pressed="true"] svg { stroke-dashoffset: 0; }
+.tick.refresh { animation: refresh 260ms steps(1, end); }
+.tick.refresh[aria-pressed="true"] svg { animation: draw 200ms 90ms steps(4, end) both; }
+@keyframes refresh { 0% { background: var(--ink); border-color: var(--ink); } 45% { background: var(--paper); border-color: var(--ink); } }
+@keyframes draw { from { stroke-dashoffset: 24; } to { stroke-dashoffset: 0; } }
+@media (prefers-reduced-motion: reduce) { .tick.refresh, .tick.refresh svg { animation: none !important; } }
+
+/* A partner's marks are halftone dots, yours are solid. */
+.dither { background: repeating-conic-gradient(var(--c) 0 25%, transparent 0 50%) 0 0 / 4px 4px; }
+.solid { background: var(--c); }
+
+.link { display: inline-flex; padding: 4px; margin: -4px; color: var(--ink-2); }
+.link svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.6; }
+.muted { color: var(--ink-2); }
+
+nav.tabs { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 2px solid var(--ink); padding: 8px 0 24px; position: sticky; bottom: 0; background: var(--paper); }
+nav.tabs a { display: grid; justify-items: center; gap: 3px; font-size: 12px; color: var(--ink-2); text-decoration: none; padding-top: 2px; }
+nav.tabs a.on { color: var(--ink); font-weight: 700; }
+nav.tabs svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; }

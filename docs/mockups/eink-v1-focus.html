@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Variation 1 — Focus</title>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="eink-base.css">
+<style>
+  header { display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; padding: 14px 12px 12px; border-bottom: 2px solid var(--ink); }
+  header button { all: unset; width: 44px; height: 44px; display: grid; place-items: center; cursor: pointer; }
+  header svg { width: 22px; height: 22px; fill: none; stroke: var(--ink); stroke-width: 2; }
+  .date { text-align: center; }
+  .date b { display: block; font-size: 19px; }
+  .date span { font-size: 14px; color: var(--ink-2); }
+  main { flex: 1; display: flex; flex-direction: column; }
+  .band { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 18px 22px; border-bottom: 1px solid var(--rule); position: relative; }
+  .band .row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .label { font-size: 15px; color: var(--ink-2); display: flex; align-items: center; gap: 8px; }
+  .label i { width: 12px; height: 12px; }
+  .ref { font-size: 44px; font-weight: 700; letter-spacing: -.02em; line-height: 1.05; margin-top: 6px; }
+  .band .tick { width: 48px; height: 48px; }
+  .band .tick svg { width: 30px; height: 30px; }
+  .who { font-size: 13px; color: var(--ink-2); margin-top: 10px; display: flex; align-items: center; gap: 6px; }
+  .who i { width: 12px; height: 12px; }
+  footer { display: flex; justify-content: space-between; align-items: center; padding: 14px 22px 26px; font-size: 14px; color: var(--ink-2); border-top: 2px solid var(--ink); margin-top: -1px; }
+  footer a { color: var(--ink); text-underline-offset: 3px; }
+  .menu { font-size: 14px; display: inline-flex; gap: 6px; align-items: center; color: var(--ink); text-decoration: none; }
+  .menu svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <button aria-label="Previous day"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <div class="date"><b>Monday, January 4</b><span>Week 1, day 1. Not synced yet.</span></div>
+    <button aria-label="Next day"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+  </header>
+  <main>
+    <section class="band nt">
+      <div class="row"><div><div class="label"><i class="solid"></i>New Testament <a class="link" href="#" aria-label="Read Luke 1 online"><svg viewBox="0 0 16 16"><path d="M9 3h4v4M13 3 7.5 8.5M11 9.5V13H3V5h3.5"/></svg></a></div><div class="ref">Luke 1</div></div>
+      <button class="tick" aria-pressed="true" aria-label="Mark Luke 1 read"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button></div>
+      <div class="who"><i class="dither"></i>Anna read this too</div>
+    </section>
+    <section class="band ot">
+      <div class="row"><div><div class="label"><i class="solid"></i>Old Testament <a class="link" href="#" aria-label="Read Genesis 1 online"><svg viewBox="0 0 16 16"><path d="M9 3h4v4M13 3 7.5 8.5M11 9.5V13H3V5h3.5"/></svg></a></div><div class="ref">Genesis 1</div></div>
+      <button class="tick" aria-pressed="false" aria-label="Mark Genesis 1 read"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button></div>
+      <div class="who"><i class="dither"></i>Anna read this</div>
+    </section>
+    <section class="band wis">
+      <div class="row"><div><div class="label"><i class="solid"></i>Psalm <a class="link" href="#" aria-label="Read Psalm 1 online"><svg viewBox="0 0 16 16"><path d="M9 3h4v4M13 3 7.5 8.5M11 9.5V13H3V5h3.5"/></svg></a></div><div class="ref">Psalm 1</div></div>
+      <button class="tick" aria-pressed="false" aria-label="Mark Psalm 1 read"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button></div>
+    </section>
+  </main>
+  <footer><a href="#">3 readings to catch up</a><a class="menu" href="#"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>Menu</a></footer>
+</div>
+<script>
+  document.querySelectorAll('.tick').forEach(b => b.addEventListener('click', () => {
+    b.classList.remove('refresh'); void b.offsetWidth; b.classList.add('refresh');
+    b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') !== 'true');
+  }));
+</script>
+</body>
+</html>
