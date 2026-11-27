@@ -482,6 +482,7 @@ function boot() {
 
   render();
   if (syncEnabled() && getAccount()) syncNow();
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js').catch(() => {});
 }
 
 document.addEventListener('DOMContentLoaded', boot);
