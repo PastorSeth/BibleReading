@@ -389,7 +389,7 @@ function renderAccount(settings, account, syncState) {
       syncEnabled() ? accountSection(account, syncState) : null,
       h('section', null, h('h2', { text: 'Settings' }),
         h('label', { class: 'check-field' }, h('input', { type: 'checkbox', name: 'showLinks', checked: settings.showLinks }),
-          h('span', { text: 'Show links to read online (ESV)' }))),
+          h('span', { text: 'Show links to read online' }))),
       standalone ? null : h('p', { class: 'muted tip', text: 'Tip: add this app to your home screen. Your checkmarks are kept safest there.' })));
 }
 

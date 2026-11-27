@@ -14,7 +14,7 @@ Weekends are left open for catching up or rest. Each year keeps its own checkmar
 
 - `readings.js`: **every reading in the plan**, in order. Change a reading here and the app follows.
 - `plan.js`: works out which readings fall on which day.
-- `links.js`: builds the small "read online" links to Biblia.com.
+- `links.js`: builds the small "read online" links. They're ref.ly short links (like `https://ref.ly/Lk3`): on an iPhone with Logos or the Biblia app they open the app, otherwise Biblia.com in the reader's preferred Bible (ESV if they aren't signed in).
 - `store.js`: saves checkmarks and settings on the phone.
 - `sync.js` and `sync-config.js`: the optional link to your Google Sheet. **`sync-config.js` is the file you'll edit** to turn accounts on.
 - `app.js`, `index.html`, `style.css`: the screens and the look.

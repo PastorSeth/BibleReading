@@ -1,9 +1,12 @@
 /* ============================================================
    PASSAGE LINKS — turns a reading like "Exodus 13:17–14" into a
-   Biblia.com link. These links are a quiet extra: the reading
+   ref.ly link (Faithlife's short links). These links are a quiet extra: the reading
    itself happens in a physical Bible.
 
-   Biblia link format: https://biblia.com/books/esv/Ex13.17-14.31
+   Link format: https://ref.ly/Ex13.17-14.31 — no version, so Biblia
+   uses the reader's preferred Bible when they're signed in (ESV for
+   everyone else). On an iPhone with Logos, Faithlife Study Bible or
+   the Biblia app installed, ref.ly links open that app instead.
    - Books use Biblia's short names (BOOK_ABBR below), each checked
      against Biblia on 2026-11-26. Watch the look-alikes: Jud is Jude
      and Jdg is Judges; Jn John, Jon Jonah, Joe Joel, Jos Joshua.
@@ -14,8 +17,6 @@
      would read it as one range from 32:48 straight through 34.
    ============================================================ */
 
-// Links always open the ESV (Seth's choice: one translation keeps it simple).
-const BIBLIA_VERSION = 'esv';
 
 const BOOK_ABBR = {
   'Genesis': 'Ge', 'Exodus': 'Ex', 'Leviticus': 'Le', 'Numbers': 'Nu', 'Deuteronomy': 'Dt',
@@ -59,7 +60,7 @@ function bibliaLinks(ref) {
     if (named) book = named[1];
     links.push({
       label: displayRef(rest ? `${book} ${rest}` : book),
-      url: `https://biblia.com/books/${BIBLIA_VERSION}/${BOOK_ABBR[book] || book.replace(/ /g, '')}${bibliaPassage(book, rest)}`,
+      url: `https://ref.ly/${BOOK_ABBR[book] || book.replace(/ /g, '')}${bibliaPassage(book, rest)}`,
     });
   });
   return links;

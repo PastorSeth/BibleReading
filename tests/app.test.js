@@ -39,9 +39,9 @@ test('app: today on a reading day', () => {
   assertEqual(ticks[0].getAttribute('aria-pressed'), 'false');
   el.querySelectorAll('.ref').forEach(r => assert(!r.closest('a'), 'reference text must not be a link'));
   assertEqual(el.querySelectorAll('a.read-online').length, 3);
-  assertEqual(el.querySelector('a.read-online').getAttribute('href'), 'https://biblia.com/books/esv/Lk1');
+  assertEqual(el.querySelector('a.read-online').getAttribute('href'), 'https://ref.ly/Lk1');
   const stale = renderToday(new Date(2027, 0, 4, 8), {}, { translation: 'kjv', showLinks: true }, NO_SYNC);
-  assertEqual(stale.querySelector('a.read-online').getAttribute('href'), 'https://biblia.com/books/esv/Lk1');
+  assertEqual(stale.querySelector('a.read-online').getAttribute('href'), 'https://ref.ly/Lk1');
 });
 
 test('app: done readings show pressed', () => {

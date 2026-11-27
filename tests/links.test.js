@@ -1,4 +1,4 @@
-const ESV = 'https://biblia.com/books/esv/';
+const ESV = 'https://ref.ly/';
 const suffix = ref => bibliaLinks(ref, 'esv').map(l => l.url.slice(ESV.length));
 
 test('links: tested formats', () => {
@@ -30,7 +30,7 @@ test('links: split pieces', () => {
 });
 
 test('links: every plan reference produces valid links', () => {
-  const shape = /^https:\/\/biblia\.com\/books\/esv\/[1-3]?[A-Z][a-z]{1,2}(\d+(\.\d+)?(-\d+(\.\d+)?)?)?$/;
+  const shape = /^https:\/\/ref\.ly\/[1-3]?[A-Z][a-z]{1,2}(\d+(\.\d+)?(-\d+(\.\d+)?)?)?$/;
   [NT_READINGS, OT_READINGS, PSALM_READINGS, PROVERBS_READINGS].forEach(list => {
     list.forEach(ref => {
       const links = bibliaLinks(ref, 'esv');
@@ -43,12 +43,14 @@ test('links: every plan reference produces valid links', () => {
   });
 });
 
-test('links: always ESV', () => {
-  assertEqual(bibliaLinks('John 3')[0].url, 'https://biblia.com/books/esv/Jn3');
-  assertEqual(bibliaLinks('Mark 13:25')[0].url, 'https://biblia.com/books/esv/Mk13.25');
-  assertEqual(bibliaLinks('Jude')[0].url, 'https://biblia.com/books/esv/Jud');
-  assertEqual(bibliaLinks('Jonah 1')[0].url, 'https://biblia.com/books/esv/Jon1');
-  assertEqual(bibliaLinks('Joel 2')[0].url, 'https://biblia.com/books/esv/Joe2');
+test('links: ref.ly short links with no version', () => {
+  assertEqual(bibliaLinks('Luke 3')[0].url, 'https://ref.ly/Lk3');
+  assertEqual(bibliaLinks('John 3')[0].url, 'https://ref.ly/Jn3');
+  assertEqual(bibliaLinks('Mark 13:25')[0].url, 'https://ref.ly/Mk13.25');
+  assertEqual(bibliaLinks('Jude')[0].url, 'https://ref.ly/Jud');
+  assertEqual(bibliaLinks('Jonah 1')[0].url, 'https://ref.ly/Jon1');
+  assertEqual(bibliaLinks('Joel 2')[0].url, 'https://ref.ly/Joe2');
+  assert(!bibliaLinks('Luke 3')[0].url.includes('esv'), 'no version in the link');
   assertEqual(typeof TRANSLATIONS, 'undefined', 'the translation list was removed');
 });
 
