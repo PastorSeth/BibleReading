@@ -336,7 +336,7 @@ test('app: about page', () => {
 
 test('app: printable plan lists every day of the year with tick boxes', () => {
   const el = renderPrint(2027, new Date(2027, 0, 6));
-  assertIncludes(el.querySelector('h1').textContent, '2027');
+  assertEqual(el.querySelector('h1').textContent, 'M260 2027 Bible Reading Plan');
   assertEqual(el.querySelectorAll('.print-week').length, 52);
   assertEqual(el.querySelectorAll('.print-day').length, 260);
   assertEqual(el.querySelectorAll('.print-day .box').length, 780);

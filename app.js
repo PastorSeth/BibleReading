@@ -532,7 +532,7 @@ function renderPrint(year, now) {
         h('button', { type: 'button', class: 'btn primary print-now', text: 'Print' })),
       h('nav', { class: 'years print-actions', 'aria-label': 'Which year' }, years.map(y =>
         h('a', { href: `#/print/${y}`, 'aria-current': y === year ? 'page' : null, text: String(y) }))),
-      h('h1', { text: `${year} Bible Reading Plan` }),
+      h('h1', { text: `M260 ${year} Bible Reading Plan` }),
       h('p', { class: 'seq', text: `${READING_DAYS} readings, Monday to Friday, ${planRange(year)}. New Testament, Old Testament, and a Psalm or Proverbs each day.` })),
     h('main', { class: 'print-weeks' }, weeks));
 }
@@ -613,6 +613,8 @@ function render() {
   const focusedId = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.id : null;
   const previewing = /[?&]date=/.test(location.search);
   const screen = screens[route.name]();
+  // The page title names a saved PDF of the printable plan.
+  document.title = route.name === 'print' ? `M260 ${route.year || currentYear(now)} Bible Reading Plan` : 'Bible Reading';
   if (route.name === 'today') {
     const prompt = installPrompt(installEnv());
     if (prompt) screen.querySelector('header').after(prompt);
