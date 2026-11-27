@@ -214,6 +214,11 @@ function itemsForIds(ids) {
   return groups;
 }
 
+// Catch-up order everywhere: newest week first; within a week, Monday to Friday.
+function newestWeekFirst(groups) {
+  return groups.slice().sort((a, b) => (b.year - a.year) || (b.week - a.week) || (a.weekday - b.weekday));
+}
+
 /* ---------- Screens ---------- */
 
 function renderToday(now, progress, settings, syncState) {
@@ -244,8 +249,15 @@ function renderToday(now, progress, settings, syncState) {
     append(root.querySelector('header'), h('p', { class: 'seq', text: 'Weekend. Catch up or rest.' }));
     const behind = catchUpIds(progress, now);
     if (behind.length) {
-      append(main, h('h2', { text: 'To catch up' }),
-        readingList(itemsForIds(behind.slice(0, 6)).flatMap(g => g.items), progress, partners, settings));
+      append(main, h('h2', { text: 'To catch up' }));
+      let shown = 0;
+      newestWeekFirst(itemsForIds(behind)).forEach(g => {
+        if (shown >= 6) return;
+        const items = g.items.slice(0, 6 - shown);
+        shown += items.length;
+        append(main, h('h3', { class: 'day-head', text: longDate(dateFor(g.year, g.week, g.weekday)) }),
+          readingList(items, progress, partners, settings));
+      });
       if (behind.length > 6) append(main, h('p', { class: 'catch' }, h('a', { href: '#/catchup', text: `See all ${behind.length}` })));
     }
     append(main, h('h2', { text: `Monday, ${shortDate(dateFor(day.year, day.nextWeek, 1))}` }), previewList(day.year, day.nextWeek, 1));
@@ -316,7 +328,7 @@ function renderCatchUp(now, progress, settings, syncState) {
     append(main, h('p', { class: 'empty', text: "You're all caught up." }), h('p', { class: 'catch' }, h('a', { href: '#/', text: 'Back to today' })));
   } else {
     // Newest week first; within a week, Monday to Friday.
-    const groups = itemsForIds(ids).sort((a, b) => (b.year - a.year) || (b.week - a.week) || (a.weekday - b.weekday));
+    const groups = newestWeekFirst(itemsForIds(ids));
     let lastWeek = null;
     groups.forEach(g => {
       const weekKey = `${g.year}-${g.week}`;

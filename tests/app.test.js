@@ -279,3 +279,11 @@ test('app: catch me up setting shows the count and asks to confirm', () => withE
   assertEqual(none.querySelectorAll('button.catch-me-up').length, 0);
   assertIncludes(none.textContent, "You're all caught up");
 }));
+
+test('app: weekend catch-up list starts with the newest week', () => {
+  const sat = renderToday(new Date(2027, 0, 16), {}, SETTINGS, NO_SYNC); // after week 2, nothing read
+  const heads = [...sat.querySelectorAll('main .day-head')].map(x => x.textContent);
+  assertEqual(heads[0], 'Monday, January 11');
+  assertEqual(sat.querySelectorAll('main .readings button.tick').length, 6);
+  assertIncludes(sat.textContent, 'See all 30');
+});
