@@ -160,7 +160,7 @@ function weekGrid(week, now, progress, partners) {
     }),
   ]);
 
-  const counts = shown
+  const counts = partners.length >= 2
     ? h('p', { class: 'counts', text: [`You ${weekDoneCount(progress, week)} of 15`]
       .concat(partners.map(p => `${p.name} ${weekDoneCount(p.progress, week)} of 15`)).join(', ') })
     : null;

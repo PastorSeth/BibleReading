@@ -82,6 +82,7 @@ test('app: one partner shows names', () => {
   assert(!el.textContent.includes('Wait'), 'waiting partners are not shown');
   assertEqual(el.querySelectorAll('.partner-switch').length, 0);
   assertEqual(el.querySelectorAll('.grid .her.on').length, 1);
+  assertEqual(el.querySelectorAll('.counts').length, 0, 'no score line with a single partner');
 });
 
 test('app: many partners use initials and +N', () => {
