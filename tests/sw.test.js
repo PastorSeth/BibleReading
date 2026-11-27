@@ -33,3 +33,8 @@ test('sw: the app registers the service worker', async () => {
   const js = await (await fetch('../app.js')).text();
   assertIncludes(js, "navigator.serviceWorker.register('service-worker.js')");
 });
+
+test('sw: install fetches fresh copies, bypassing the browser cache', async () => {
+  const sw = await (await fetch('../service-worker.js')).text();
+  assertIncludes(sw, "new Request(url, { cache: 'reload' })");
+});

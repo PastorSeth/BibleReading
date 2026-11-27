@@ -11,7 +11,7 @@
    Sheet and to Biblia.com always go straight to the network.
    ============================================================ */
 
-const CACHE_NAME = 'bible-reading-2027-v3';
+const CACHE_NAME = 'bible-reading-2027-v4';
 
 const APP_SHELL = [
   './',
@@ -32,8 +32,12 @@ const APP_SHELL = [
   'fonts/AtkinsonHyperlegible-Bold.woff2',
 ];
 
+// Fetch fresh copies (skipping the browser's own cache) so an update never
+// stores yesterday's files under today's CACHE_NAME.
 self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)).then(() => self.skipWaiting()));
+  event.waitUntil(caches.open(CACHE_NAME)
+    .then(cache => cache.addAll(APP_SHELL.map(url => new Request(url, { cache: 'reload' }))))
+    .then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', event => {
