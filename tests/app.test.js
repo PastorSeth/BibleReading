@@ -257,3 +257,25 @@ test('app: reading links use the Android form only on Android', () => {
   assertEqual(href({ showLinks: true, android: false }), 'https://ref.ly/Lk1');
   assert(href({ showLinks: true, android: true }).startsWith('intent://ref.ly/Lk1#Intent;'), 'Android link');
 });
+
+test('app: catch me up marks every reading before today as read', () => withCleanStore(() => {
+  const wed = new Date(2027, 0, 6, 9);
+  setDone('2027-w01d1-nt', true, 1);
+  assertEqual(catchMeUp(wed), 5);
+  assertEqual(catchUpIds(getProgress(), wed), []);
+  assertEqual(isDone(getProgress(), '2027-w01d3-nt'), false, "today's readings are left alone");
+  assertEqual(catchMeUp(wed), 0);
+}));
+
+test('app: catch me up setting shows the count and asks to confirm', () => withEndpoint('', '', () => {
+  const el = renderAccount(SETTINGS, null, NO_SYNC, 6);
+  assertEqual(el.querySelector('button.catch-me-up').textContent, 'Mark 6 readings as read');
+  assertIncludes(renderAccount(SETTINGS, null, NO_SYNC, 1).querySelector('button.catch-me-up').textContent, 'Mark 1 reading as read');
+  const confirm = renderAccount(SETTINGS, null, NO_SYNC, 6, true);
+  assert(confirm.querySelector('button.catch-me-up-yes'), 'confirm button');
+  assert(confirm.querySelector('button.catch-me-up-no'), 'cancel button');
+  assertIncludes(confirm.textContent, 'untick');
+  const none = renderAccount(SETTINGS, null, NO_SYNC, 0);
+  assertEqual(none.querySelectorAll('button.catch-me-up').length, 0);
+  assertIncludes(none.textContent, "You're all caught up");
+}));

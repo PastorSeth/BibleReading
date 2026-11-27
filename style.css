@@ -166,6 +166,8 @@ details[open] summary .count { color: var(--ink); font-weight: 700; }
 .add-partner .field { margin-bottom: 0; }
 .add-partner .error { grid-column: 1 / -1; }
 .signout { margin-top: 18px; }
+.catch-me-up-section .notice { margin-top: 4px; }
+.catch-me-up-section .actions { margin-top: 12px; }
 .tip { margin-top: 28px; font-size: 15px; }
 .noscript { padding: 40px 20px; }
 

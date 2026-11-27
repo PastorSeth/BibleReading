@@ -36,6 +36,7 @@ const ERROR_MESSAGES = {
 };
 
 let selectedPartner = 0;
+let confirmingCatchUp = false; // the "Catch me up" confirm step is showing
 
 /* ---------- Small DOM helpers ---------- */
 
@@ -381,7 +382,36 @@ function accountSection(account, syncState) {
   ];
 }
 
-function renderAccount(settings, account, syncState) {
+// Marks every unread reading before today (this plan year) as read; returns how many.
+function catchMeUp(now) {
+  const ids = catchUpIds(getProgress(), now);
+  if (ids.length) {
+    setManyDone(ids, true);
+    noteLocalChange();
+  }
+  return ids.length;
+}
+
+function catchMeUpSection(behind, confirming) {
+  let body;
+  if (!behind) {
+    body = h('p', { class: 'muted', text: "You're all caught up." });
+  } else if (confirming) {
+    body = [
+      h('p', { class: 'notice', text: `This marks all ${plural(behind, 'reading')} before today as read. You can untick any of them later.` }),
+      h('div', { class: 'actions' },
+        h('button', { type: 'button', class: 'btn primary catch-me-up-yes', text: 'Yes, mark them read' }),
+        h('button', { type: 'button', class: 'text-btn catch-me-up-no', text: 'Cancel' })),
+    ];
+  } else {
+    body = h('button', { type: 'button', class: 'btn catch-me-up', text: `Mark ${plural(behind, 'reading')} as read` });
+  }
+  return h('section', { class: 'catch-me-up-section' }, h('h2', { text: 'Catch me up' }),
+    h('p', { class: 'muted', text: "Starting partway through the year? Mark every reading before today as read. Today's readings stay unticked." }),
+    body);
+}
+
+function renderAccount(settings, account, syncState, behind = 0, confirming = false) {
   const standalone = typeof matchMedia === 'function' && matchMedia('(display-mode: standalone)').matches;
   return h('div', { class: 'screen' },
     h('header', null, topBar(syncState), h('h1', { text: 'Account and settings' })),
@@ -390,6 +420,7 @@ function renderAccount(settings, account, syncState) {
       h('section', null, h('h2', { text: 'Settings' }),
         h('label', { class: 'check-field' }, h('input', { type: 'checkbox', name: 'showLinks', checked: settings.showLinks }),
           h('span', { text: 'Show links to read online' }))),
+      catchMeUpSection(behind, confirming),
       standalone ? null : h('p', { class: 'muted tip', text: 'Tip: add this app to your home screen. Your checkmarks are kept safest there.' })));
 }
 
@@ -460,7 +491,7 @@ function render() {
     week: () => renderWeek(route.year || currentYear(now), route.week, now, progress, settings, state),
     plan: () => renderPlan(route.year || currentYear(now), now, progress),
     catchup: () => renderCatchUp(now, progress, settings, state),
-    account: () => renderAccount(settings, getAccount(), state),
+    account: () => renderAccount(settings, getAccount(), state, catchUpIds(progress, now).length, confirmingCatchUp),
   };
   const focusedId = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.id : null;
   const previewing = /[?&]date=/.test(location.search);
@@ -531,6 +562,9 @@ function boot() {
     const addBack = e.target.closest('[data-addback]');
     if (addBack) return addPartner(addBack.dataset.addback).then(render);
     if (e.target.closest('.signout')) return signOut().then(render);
+    if (e.target.closest('.catch-me-up')) { confirmingCatchUp = true; return render(); }
+    if (e.target.closest('.catch-me-up-no')) { confirmingCatchUp = false; return render(); }
+    if (e.target.closest('.catch-me-up-yes')) { confirmingCatchUp = false; catchMeUp(appNow(location.search)); return render(); }
     if (e.target.closest('.install-dismiss')) { localStorage.setItem('br27.installDismissed', '1'); return render(); }
     if (e.target.closest('button.install') && deferredInstall) {
       const ev = deferredInstall;
@@ -555,7 +589,7 @@ function boot() {
     handleSubmit(e.target);
   });
 
-  window.addEventListener('hashchange', () => { render(); window.scrollTo(0, 0); });
+  window.addEventListener('hashchange', () => { confirmingCatchUp = false; render(); window.scrollTo(0, 0); });
   const safeRender = () => { if (!formFocused() && !formHasValues(app)) render(); };
   onSyncChange(safeRender);
   document.addEventListener('visibilitychange', () => {

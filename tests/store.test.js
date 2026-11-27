@@ -97,3 +97,10 @@ test('store: resetLocal keeps settings', () => withCleanStore(() => {
   assertEqual(getAccount(), null);
   assertEqual(getSettings().showLinks, false);
 }));
+
+test('store: setManyDone marks a batch at once and queues it to sync', () => withCleanStore(() => {
+  setDone('2027-w01d1-nt', false, 5);
+  setManyDone(['2027-w01d1-nt', '2027-w01d1-ot'], true, 50);
+  assertEqual(getProgress(), { '2027-w01d1-nt': { done: true, t: 50 }, '2027-w01d1-ot': { done: true, t: 50 } });
+  assertEqual(Object.keys(getPending()).sort(), ['2027-w01d1-nt', '2027-w01d1-ot']);
+}));

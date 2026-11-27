@@ -84,6 +84,15 @@ function setDone(id, done, now = Date.now()) {
   return progress;
 }
 
+// Mark many readings at once (one write, not hundreds) and queue them to sync.
+function setManyDone(ids, done, now = Date.now()) {
+  const progress = getProgress(), pending = getPending();
+  ids.forEach(id => { progress[id] = pending[id] = { done, t: now }; });
+  replaceProgress(progress);
+  writeJSON(KEYS.pending, pending);
+  return progress;
+}
+
 // Drop the pending changes the server has now seen (anything newer stays queued).
 function clearPending(sent) {
   const pending = getPending();
