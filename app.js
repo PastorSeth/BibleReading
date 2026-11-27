@@ -121,7 +121,7 @@ function topBar(syncState) {
 
 function readingRow(item, done, partners, settings) {
   const links = settings.showLinks
-    ? bibliaLinks(item.ref, settings.translation).map(l =>
+    ? bibliaLinks(item.ref).map(l =>
       h('a', { class: 'read-online', href: l.url, target: '_blank', rel: 'noopener', 'aria-label': `Read ${l.label} online` }, icon('link')))
     : [];
   return h('li', { class: trackClass(item.track) },
@@ -353,10 +353,8 @@ function renderAccount(settings, account, syncState) {
     h('main', { class: 'account' },
       syncEnabled() ? accountSection(account, syncState) : null,
       h('section', null, h('h2', { text: 'Settings' }),
-        h('label', { class: 'field' }, h('span', { text: 'Translation for online links' }),
-          h('select', { name: 'translation' }, TRANSLATIONS.map(t => h('option', { value: t.code, selected: t.code === settings.translation, text: t.name })))),
         h('label', { class: 'check-field' }, h('input', { type: 'checkbox', name: 'showLinks', checked: settings.showLinks }),
-          h('span', { text: 'Show links to read online' }))),
+          h('span', { text: 'Show links to read online (ESV)' }))),
       standalone ? null : h('p', { class: 'muted tip', text: 'Tip: add this app to your home screen. Your checkmarks are kept safest there.' })));
 }
 
@@ -457,8 +455,7 @@ function boot() {
     return undefined;
   });
   app.addEventListener('change', e => {
-    if (e.target.name === 'translation') saveSettings({ translation: e.target.value });
-    else if (e.target.name === 'showLinks') saveSettings({ showLinks: e.target.checked });
+    if (e.target.name === 'showLinks') saveSettings({ showLinks: e.target.checked });
     else if (e.target.classList.contains('partner-switch')) selectedPartner = Number(e.target.value);
     else return;
     render();

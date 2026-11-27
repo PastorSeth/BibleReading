@@ -43,8 +43,9 @@ test('links: every plan reference produces valid links', () => {
   });
 });
 
-test('links: translation', () => {
-  assertEqual(bibliaLinks('John 3', 'kjv')[0].url, 'https://biblia.com/bible/kjv/John3');
+test('links: always ESV', () => {
+  assertEqual(bibliaLinks('John 3')[0].url, 'https://biblia.com/bible/esv/John3');
+  assertEqual(typeof TRANSLATIONS, 'undefined', 'the translation list was removed');
 });
 
 test('links: displayRef', () => {

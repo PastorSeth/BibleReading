@@ -36,6 +36,8 @@ test('app: today on a reading day', () => {
   el.querySelectorAll('.ref').forEach(r => assert(!r.closest('a'), 'reference text must not be a link'));
   assertEqual(el.querySelectorAll('a.read-online').length, 3);
   assertEqual(el.querySelector('a.read-online').getAttribute('href'), 'https://biblia.com/bible/esv/Luke1');
+  const stale = renderToday(new Date(2027, 0, 4, 8), {}, { translation: 'kjv', showLinks: true }, NO_SYNC);
+  assertEqual(stale.querySelector('a.read-online').getAttribute('href'), 'https://biblia.com/bible/esv/Luke1');
 });
 
 test('app: done readings show pressed', () => {
@@ -128,7 +130,7 @@ test('app: catch-up view', () => {
 test('app: account hidden when sync off', () => withEndpoint('', '', () => {
   const el = renderAccount(SETTINGS, null, NO_SYNC);
   assertEqual(el.querySelectorAll('input[name="username"]').length, 0);
-  assert(el.querySelector('select[name="translation"]'), 'translation choice is always there');
+  assert(!el.querySelector('select[name="translation"]'), 'no translation choice: links are always ESV');
   assert(el.querySelector('input[name="showLinks"]'), 'link switch is always there');
 }));
 

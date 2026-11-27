@@ -2,7 +2,7 @@
 
 *Working name; easy to change. Written 2026-11-26. Starts Monday, January 4, 2027.*
 
-> **Update 2026-11-26:** Seth removed the weekly memory verse from the app. Anything below about memory verses no longer applies. The visual direction is "The Plan Sheet" with an e-ink feel and muted accent colors (see `.impeccable/` surface brief).
+> **Update 2026-11-26:** Seth removed the weekly memory verse from the app. Anything below about memory verses no longer applies. The visual direction is "The Plan Sheet" with an e-ink feel and muted accent colors (see `.impeccable/` surface brief). Online links are always ESV; the translation choice was removed at Seth's request (the show/hide links switch stays).
 
 ## Why
 

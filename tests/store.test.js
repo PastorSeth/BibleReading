@@ -49,11 +49,14 @@ test('store: corrupt storage', () => withCleanStore(() => {
 }));
 
 test('store: settings defaults', () => withCleanStore(() => {
-  assertEqual(getSettings(), { translation: 'esv', showLinks: true });
+  assertEqual(getSettings(), { showLinks: true });
   saveSettings({ showLinks: false });
-  assertEqual(getSettings(), { translation: 'esv', showLinks: false });
-  saveSettings({ translation: 'kjv' });
-  assertEqual(getSettings(), { translation: 'kjv', showLinks: false });
+  assertEqual(getSettings(), { showLinks: false });
+}));
+
+test('store: an old translation setting is ignored', () => withCleanStore(() => {
+  localStorage.setItem('br27.settings', '{"translation":"kjv","showLinks":true}');
+  assertEqual(getSettings(), { showLinks: true });
 }));
 
 test('store: account', () => withCleanStore(() => {
@@ -78,12 +81,12 @@ test('store: weekDoneCount', () => {
 });
 
 test('store: resetLocal keeps settings', () => withCleanStore(() => {
-  saveSettings({ translation: 'leb' });
+  saveSettings({ showLinks: false });
   setDone('w01d1-nt', true, 1);
   saveAccount({ username: 'Seth', token: 't' });
   resetLocal();
   assertEqual(getProgress(), {});
   assertEqual(getPending(), {});
   assertEqual(getAccount(), null);
-  assertEqual(getSettings().translation, 'leb');
+  assertEqual(getSettings().showLinks, false);
 }));

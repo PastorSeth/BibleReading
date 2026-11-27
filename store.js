@@ -15,7 +15,7 @@ const KEYS = {
   settings: 'br27.settings',
 };
 
-const DEFAULT_SETTINGS = { translation: 'esv', showLinks: true };
+const DEFAULT_SETTINGS = { showLinks: true };
 
 function readJSON(key, fallback) {
   try {
@@ -77,9 +77,11 @@ function clearPending(sent) {
   writeJSON(KEYS.pending, pending);
 }
 
+// Only known settings come back; anything older (like a translation choice) is ignored.
 function getSettings() {
   const s = readJSON(KEYS.settings, {});
-  return Object.assign({}, DEFAULT_SETTINGS, isPlainObject(s) ? s : {});
+  const stored = isPlainObject(s) ? s : {};
+  return { showLinks: typeof stored.showLinks === 'boolean' ? stored.showLinks : DEFAULT_SETTINGS.showLinks };
 }
 
 function saveSettings(partial) {
@@ -99,7 +101,7 @@ function clearAccount() {
   localStorage.removeItem(KEYS.account);
 }
 
-// Back to a fresh, no-account phone. Settings (translation, links) stay.
+// Back to a fresh, no-account phone. Settings (show online links) stay.
 function resetLocal() {
   [KEYS.progress, KEYS.pending, KEYS.account].forEach(k => localStorage.removeItem(k));
 }

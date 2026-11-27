@@ -13,13 +13,8 @@
      would read it as one range from 32:48 straight through 34.
    ============================================================ */
 
-const TRANSLATIONS = [
-  { code: 'esv', name: 'ESV' },
-  { code: 'nkjv', name: 'NKJV' },
-  { code: 'kjv', name: 'KJV' },
-  { code: 'nasb95', name: 'NASB 1995' },
-  { code: 'leb', name: 'LEB' },
-];
+// Links always open the ESV (Seth's choice: one translation keeps it simple).
+const BIBLIA_VERSION = 'esv';
 
 // Last verse of each chapter that a "through the end of chapter" reading reaches.
 const LAST_VERSE = { 'Exodus 14': 31, 'Joshua 6': 27, '1 Kings 17': 24 };
@@ -40,7 +35,7 @@ function bibliaPassage(book, rest) {
   return rest.replace(/–/g, '-').replace(/:/g, '.');
 }
 
-function bibliaLinks(ref, translation) {
+function bibliaLinks(ref) {
   const links = [];
   let book = '';
   ref.split(';').map(p => p.trim()).filter(Boolean).forEach(piece => {
@@ -49,7 +44,7 @@ function bibliaLinks(ref, translation) {
     if (named) book = named[1];
     links.push({
       label: displayRef(rest ? `${book} ${rest}` : book),
-      url: `https://biblia.com/bible/${translation}/${book.replace(/ /g, '')}${bibliaPassage(book, rest)}`,
+      url: `https://biblia.com/bible/${BIBLIA_VERSION}/${book.replace(/ /g, '')}${bibliaPassage(book, rest)}`,
     });
   });
   return links;
