@@ -374,6 +374,8 @@ function accountSection(account, syncState) {
       h('p', { class: 'error', role: 'alert' })),
     h('form', { class: 'signup' }, h('h3', { text: 'Create an account' }), field('Username', 'username', { required: true }),
       pinField('PIN (4–8 digits)', 'pin'), pinField('PIN again', 'pin2'),
+      h('p', { class: 'disclaimer' }, h('b', { text: '✧Disclaimer✧' }),
+        " This is a small, free app. Not a bank with top tier encryption. Choose a PIN you don't use everywhere else."),
       h('div', { class: 'actions' }, h('button', { class: 'btn', type: 'submit', text: 'Create account' })),
       h('p', { class: 'error', role: 'alert' })),
   ];

@@ -143,6 +143,8 @@ details[open] summary .count { color: var(--ink); font-weight: 700; }
 .btn:disabled { opacity: .5; cursor: default; }
 .text-btn { font: inherit; font-size: 14px; color: var(--ink); background: none; border: 0; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; padding: 6px; }
 .forgot { font-size: 14px; }
+.disclaimer { font-size: 14px; color: var(--ink-2); margin: 2px 0 14px; padding: 10px 12px; border: 1.5px dashed var(--ink-2); }
+.disclaimer b { color: var(--ink); }
 .error { color: var(--ot); font-size: 14px; margin-top: 10px; min-height: 1em; }
 .error:empty { display: none; }
 .notice { margin-top: 18px; padding: 12px 14px; border: 2px solid var(--ink); }

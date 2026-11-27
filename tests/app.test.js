@@ -244,3 +244,10 @@ test('app: catch-up lists the newest week first, days in order within a week', (
   assertEqual(heads, ['H2 Week 2', 'H3 Monday, January 11', 'H3 Tuesday, January 12',
     'H2 Week 1', 'H3 Monday, January 4', 'H3 Tuesday, January 5', 'H3 Wednesday, January 6', 'H3 Thursday, January 7', 'H3 Friday, January 8']);
 });
+
+test('app: sign-up form shows the disclaimer above its button', () => withEndpoint('https://example.test/exec', '', () => {
+  const form = renderAccount(SETTINGS, null, NO_SYNC).querySelector('form.signup');
+  const note = form.querySelector('.disclaimer');
+  assertEqual(note.textContent, "✧Disclaimer✧ This is a small, free app. Not a bank with top tier encryption. Choose a PIN you don't use everywhere else.");
+  assert(note.compareDocumentPosition(form.querySelector('button[type="submit"]')) & Node.DOCUMENT_POSITION_FOLLOWING, 'disclaimer sits above the button');
+}));
