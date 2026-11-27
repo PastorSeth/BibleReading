@@ -94,7 +94,7 @@ function parseRoute(hash) {
   if (planYear) return { name: 'plan', year: Math.max(FIRST_YEAR, Number(planYear[1])) };
   const printYear = path.match(/^\/print\/(\d{4})$/);
   if (printYear) return { name: 'print', year: Math.max(FIRST_YEAR, Number(printYear[1])) };
-  if (['/plan', '/catchup', '/account', '/extras', '/print', '/about', '/gospel'].includes(path)) return { name: path.slice(1) };
+  if (['/plan', '/catchup', '/account', '/extras', '/print', '/about', '/gospel', '/hear'].includes(path)) return { name: path.slice(1) };
   return { name: 'today' };
 }
 
@@ -545,6 +545,7 @@ function renderExtras(now) {
     h('main', { class: 'extras' },
       h('nav', { class: 'extras-menu', 'aria-label': 'Extras' },
         extrasRow('#/gospel', 'The Gospel', 'The good news of Jesus in four parts: God, Man, Jesus and our response.'),
+        extrasRow('#/hear', 'HEAR Method for Bible Study', 'A simple way to journal through a reading: Highlight, Explain, Apply, Respond.'),
         extrasRow('#/about', 'About this reading plan', 'Where the readings come from and how the year works.'),
         extrasRow(`#/print/${year}`, 'Printable plan', 'The whole year on paper, with a box for every reading.')),
       h('section', null, h('h2', { text: 'Share this app with a friend' }),
@@ -572,6 +573,52 @@ function renderAbout() {
         h('ul', { class: 'about-list' },
           h('li', null, h('b', { text: 'Monday, Wednesday and Friday: ' }), 'a Psalm. You read all 150 Psalms in order over the year. Psalm 119, the longest, is split into seven parts.'),
           h('li', null, h('b', { text: 'Tuesday and Thursday: ' }), 'a short passage from Proverbs, about nine verses. You read the whole book over the year, a little at a time.')))));
+}
+
+/* ---------- HEAR Method for Bible Study (Extras) ----------
+   After the H.E.A.R. Journal from Replicate Ministries, in our own words,
+   with the source credited at the bottom of the page. */
+
+const HEAR_STEPS = [
+  ['H', 'Highlight', 'Read the passage slowly. When a verse stands out to you, copy it down. Note the book, chapter and verse, and give the passage a short title of your own so you can find it again.',
+    ['Which verse caught my attention?', 'What title sums up this passage?']],
+  ['E', 'Explain', 'Before asking what it means for you, work out what it meant for the people who first heard it. Then sum it up in a sentence or two.',
+    ['Who was this written to, and why?', 'How does it fit with the verses around it?', 'What is God showing about Himself here?']],
+  ['A', 'Apply', 'This is the heart of it. Ask what this truth looks like in your life right now, and write a few sentences.',
+    ['What would change if I took this seriously?', 'Where does this meet my week?', 'What is God saying to me through it?']],
+  ['R', 'Respond', 'Answer God. Write a short prayer, or one thing you will do differently because of what you read.',
+    ['What do I want to say to God about this?', 'What is one step I can take this week?']],
+];
+
+const HEAR_EXAMPLE = [
+  ['H', 'Psalm 1:3, “Planted by the stream”', '“He is like a tree planted by streams of water that yields its fruit in its season, and its leaf does not wither.”'],
+  ['E', null, 'Psalm 1 opens the Psalms with two ways to live. The person who keeps coming back to God’s word is like a tree with its roots in a stream: steady, alive and fruitful, even in a dry season.'],
+  ['A', null, 'When I’m worn out, I reach for my phone to refill. This says lasting strength comes from staying rooted in God’s word, day after day.'],
+  ['R', null, 'Lord, plant me by your stream. Help me open your word before anything else tomorrow morning.'],
+];
+
+function renderHear() {
+  return h('div', { class: 'screen' },
+    h('header', null, h('div', { class: 'bar' }, backLink()), h('h1', { text: 'HEAR Method for Bible Study' })),
+    h('main', { class: 'extras about hear' },
+      h('p', { text: 'HEAR is a simple way to journal through a passage, so a reading becomes more than a box to tick. Grab a notebook, write H, E, A and R down the side of a page, and work through them in order.' }),
+      h('p', { text: 'With three readings a day, pick the one that stood out most and HEAR that one.' }),
+      h('section', { class: 'pray-first' }, h('h2', { text: 'Pray first' }),
+        h('p', { text: 'Ask God to help you understand what you read. Psalm 119:18 is a good prayer to borrow:' }),
+        h('blockquote', { class: 'verse' }, h('p', { text: '“Open my eyes, that I may behold wondrous things out of your law.”' }), h('cite', { text: 'Psalm 119:18' }))),
+      HEAR_STEPS.map(([letter, word, what, prompts]) => h('section', { class: 'hear-step' },
+        h('span', { class: 'hear-letter', 'aria-hidden': 'true', text: letter }),
+        h('div', null, h('h2', { text: word }), h('p', { text: what }),
+          h('ul', { class: 'prompts' }, prompts.map(q => h('li', { text: q })))))),
+      h('section', null, h('h2', { text: 'An example' }),
+        h('div', { class: 'journal' }, HEAR_EXAMPLE.map(([letter, title, text]) => h('div', { class: 'journal-line' },
+          h('span', { class: 'journal-letter', text: letter }),
+          h('p', null, title ? h('b', { text: title }) : null, title ? h('br') : null, text))))),
+      h('footer', { class: 'source' },
+        h('span', { class: 'source-label', text: 'Source' }),
+        h('p', null, 'Adapted from the ',
+          h('a', { href: 'https://replicate.org/resources/hear-journal', target: '_blank', rel: 'noopener', text: 'H.E.A.R. Journal' }),
+          ' by Replicate Ministries, the team behind the F260 reading plan.'))));
 }
 
 /* ---------- The Gospel (Extras) ----------
@@ -688,7 +735,7 @@ function renderPrint(year, now, settings = {}) {
 function tabBar(route, now) {
   const tabs = [['extras', '#/extras', 'Extras'], ['week', `#/week/${currentYear(now)}/${currentWeek(now)}`, 'Week'],
     ['today', '#/', 'Today'], ['plan', '#/plan', 'Plan'], ['account', '#/account', 'Account']];
-  const active = { catchup: 'today', print: 'extras', about: 'extras', gospel: 'extras' }[route.name] || route.name;
+  const active = { catchup: 'today', print: 'extras', about: 'extras', gospel: 'extras', hear: 'extras' }[route.name] || route.name;
   return h('nav', { class: 'tabs', 'aria-label': 'Sections' }, tabs.map(([name, href, label]) =>
     h('a', { href, class: name === active ? 'on' : null, 'aria-current': name === active ? 'page' : null }, icon(name), label)));
 }
@@ -758,6 +805,7 @@ function render() {
     print: () => renderPrint(route.year || currentYear(now), now, settings),
     about: () => renderAbout(),
     gospel: () => renderGospel(),
+    hear: () => renderHear(),
   };
   const focusedId = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.id : null;
   const previewing = /[?&]date=/.test(location.search);

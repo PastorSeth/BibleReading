@@ -314,11 +314,11 @@ test('app: tab bar is Extras, Week, Today, Plan, Account', () => {
   assertEqual(tabBar({ name: 'about' }, new Date(2027, 0, 6)).querySelector('a.on').textContent, 'Extras');
 });
 
-test('app: extras is a menu that opens the Gospel, About and the printable plan', () => {
+test('app: extras is a menu that opens the Gospel, HEAR, About and the printable plan', () => {
   const el = renderExtras(new Date(2027, 0, 6));
   const rows = [...el.querySelectorAll('a.extras-row')];
-  assertEqual(rows.map(a => a.querySelector('.row-title').textContent), ['The Gospel', 'About this reading plan', 'Printable plan']);
-  assertEqual(rows.map(a => a.getAttribute('href')), ['#/gospel', '#/about', '#/print/2027']);
+  assertEqual(rows.map(a => a.querySelector('.row-title').textContent), ['The Gospel', 'HEAR Method for Bible Study', 'About this reading plan', 'Printable plan']);
+  assertEqual(rows.map(a => a.getAttribute('href')), ['#/gospel', '#/hear', '#/about', '#/print/2027']);
   assert(!el.textContent.includes('Replicate'), 'the about text lives on its own page now');
   assertEqual(el.querySelector('main h2').textContent, 'Share this app with a friend');
   assert(el.querySelector('button.share-app'), 'share button stays on Extras');
@@ -602,4 +602,30 @@ test('gospel: the drawing names its colored marks: God’s light, the cross, and
   assertEqual(art.querySelectorAll('path.faith').length, 3, 'the arrow and its head');
   assertEqual(art.querySelector('text.faith').textContent, 'in faith');
   assertEqual([...art.querySelectorAll('.red')].map(el => el.textContent), ['SIN'], 'only SIN stays in red');
+});
+
+// HEAR Method for Bible Study (Extras), after Replicate's H.E.A.R. Journal.
+test('hear: Extras links to it and the route opens it', () => {
+  assertEqual(parseRoute('#/hear'), { name: 'hear' });
+  assertEqual(tabBar({ name: 'hear' }, new Date(2027, 0, 6)).querySelector('.on').textContent, 'Extras');
+  const row = renderExtras(new Date(2027, 0, 6)).querySelector('a.extras-row[href="#/hear"]');
+  assertIncludes(row.querySelector('.row-detail').textContent, 'Highlight, Explain, Apply, Respond');
+});
+
+test('hear: the page walks through the four steps, with an example and its source', () => {
+  const page = renderHear();
+  assertEqual(page.querySelector('h1').textContent, 'HEAR Method for Bible Study');
+  const steps = [...page.querySelectorAll('.hear-step')];
+  assertEqual(steps.map(s => s.querySelector('.hear-letter').textContent), ['H', 'E', 'A', 'R']);
+  assertEqual(steps.map(s => s.querySelector('h2').textContent), ['Highlight', 'Explain', 'Apply', 'Respond']);
+  steps.forEach(s => assert(s.querySelectorAll('.prompts li').length >= 2, `${s.querySelector('h2').textContent} has questions to ask`));
+  assertIncludes(page.querySelector('.pray-first').textContent, 'Psalm 119:18');
+  const example = page.querySelector('.journal');
+  assertEqual([...example.querySelectorAll('.journal-letter')].map(l => l.textContent), ['H', 'E', 'A', 'R']);
+  const source = page.querySelector('.source a');
+  assertEqual(source.getAttribute('href'), 'https://replicate.org/resources/hear-journal');
+  assertIncludes(source.textContent, 'H.E.A.R. Journal');
+  assertIncludes(page.querySelector('.source').textContent, 'Replicate');
+  assertEqual(source.getAttribute('rel'), 'noopener');
+  assert(page.querySelector('.source') === page.querySelector('main').lastElementChild, 'the source is the last thing on the page');
 });
