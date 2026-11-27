@@ -11,7 +11,7 @@
    Sheet and to Biblia.com always go straight to the network.
    ============================================================ */
 
-const CACHE_NAME = 'bible-reading-2027-v38';
+const CACHE_NAME = 'bible-reading-2027-v39';
 
 const APP_SHELL = [
   './',
@@ -23,6 +23,7 @@ const APP_SHELL = [
   'store.js',
   'sync-config.js',
   'sync.js',
+  'gospel.js',
   'app.js',
   'manifest.json',
   'icons/icon-192.png',
@@ -31,6 +32,7 @@ const APP_SHELL = [
   'fonts/AlegreyaSans-Regular.woff2',
   'fonts/AlegreyaSans-Bold.woff2',
   'fonts/Vollkorn-Bold.woff2',
+  'fonts/biro-script.otf',
 ];
 
 // Fetch fresh copies (skipping the browser's own cache) so an update never

@@ -314,11 +314,11 @@ test('app: tab bar is Extras, Week, Today, Plan, Account', () => {
   assertEqual(tabBar({ name: 'about' }, new Date(2027, 0, 6)).querySelector('a.on').textContent, 'Extras');
 });
 
-test('app: extras is a menu that opens About and the printable plan', () => {
+test('app: extras is a menu that opens the Gospel, About and the printable plan', () => {
   const el = renderExtras(new Date(2027, 0, 6));
   const rows = [...el.querySelectorAll('a.extras-row')];
-  assertEqual(rows.map(a => a.querySelector('.row-title').textContent), ['About this reading plan', 'Printable plan']);
-  assertEqual(rows.map(a => a.getAttribute('href')), ['#/about', '#/print/2027']);
+  assertEqual(rows.map(a => a.querySelector('.row-title').textContent), ['The Gospel', 'About this reading plan', 'Printable plan']);
+  assertEqual(rows.map(a => a.getAttribute('href')), ['#/gospel', '#/about', '#/print/2027']);
   assert(!el.textContent.includes('Replicate'), 'the about text lives on its own page now');
   assertEqual(el.querySelector('main h2').textContent, 'Share this app with a friend');
   assert(el.querySelector('button.share-app'), 'share button stays on Extras');
@@ -509,4 +509,76 @@ test('partners: opening the Account tab asks the server for fresh partners', asy
     await screenOpened('account');
     assertEqual(asked, ['load']);
   });
+});
+
+// The Gospel page (Extras), from First Ten Days' Gospel bridge.
+test('gospel: Extras links to it and the route opens it', () => {
+  const extras = renderExtras(new Date(2027, 0, 6));
+  const row = extras.querySelector('a.extras-row[href="#/gospel"]');
+  assert(row, 'a Gospel row in Extras');
+  assertIncludes(row.textContent, 'The Gospel');
+  assertEqual(extras.querySelector('a.extras-row').getAttribute('href'), '#/gospel', 'it comes first');
+  assertEqual(parseRoute('#/gospel'), { name: 'gospel' });
+  assertEqual(tabBar({ name: 'gospel' }, new Date(2027, 0, 6)).querySelector('.on').textContent, 'Extras');
+});
+
+test('gospel: the page has the four parts, their verses, and the drawing', () => {
+  const page = renderGospel();
+  assertEqual(page.querySelector('h1').textContent, 'What is the Gospel?');
+  assertIncludes(page.querySelector('main').textContent, 'The Gospel is the good news of Jesus Christ.');
+  assertEqual([...page.querySelectorAll('.bridge-part h2')].map(t => t.querySelector('.part-name').textContent), ['God', 'Man', 'Jesus', 'Response']);
+  assertEqual([...page.querySelectorAll('.bridge-part h2 .part-n')].map(n => n.textContent), ['1 of 4', '2 of 4', '3 of 4', '4 of 4']);
+  assertEqual([...page.querySelectorAll('.bridge-part blockquote cite')].map(c => c.textContent),
+    ['Isaiah 6:5', 'Isaiah 59:2', '2 Corinthians 5:21', 'Romans 4:24–25']);
+  assertEqual([...page.querySelectorAll('.bridge-part li b')].map(b => b.textContent), ['God is Glorious.', 'God is Just.', 'God is Holy.']);
+  assert(!page.textContent.includes('few days'), 'no First Ten Days cross-reference');
+  const art = page.querySelector('svg.bridge-art');
+  assertEqual(art.getAttribute('role'), 'img');
+  assertIncludes(art.getAttribute('aria-label'), 'cross of Jesus bridging it');
+  assertEqual(art.querySelectorAll('[data-at]').length, 31);
+  assertEqual([...page.querySelectorAll('.bridge-steps li')].map(li => li.textContent), ['God', 'Man', 'Jesus', 'Response']);
+});
+
+test('gospel: each part draws as it is read, and the end of the page finishes it', () => {
+  // Drawing at the top ends at 300px, the screen's reading area at 800px: the reading line is at 375px.
+  assertEqual(bridgeProgress(300, 800, 5000, [{ top: 900, height: 500 }]), 0, 'a part below the line has not started');
+  assertClose(bridgeProgress(300, 800, 5000, [{ top: 225, height: 500 }]), 0.5, 1e-9, 'halfway to 60% of the part');
+  assertEqual(bridgeProgress(300, 800, 5000, [{ top: 0, height: 500 }]), 1);
+  // The last part gets only what's left of the page: here 150px of travel in all, 50px of it done.
+  assertClose(bridgeProgress(300, 800, 100, [{ top: 325, height: 500 }]), 1 / 3, 1e-9);
+  const bottom = [{ top: -1300, height: 500 }, { top: -800, height: 500 }, { top: -300, height: 500 }, { top: 300, height: 450 }];
+  assertEqual(bridgeProgress(300, 800, 0, bottom), 4, 'scrolled to the bottom, the drawing is complete');
+  assertEqual(bridgeProgress(300, 800, 0, [{ top: 900, height: 500 }]), 1, 'even if the last part never reaches the line');
+});
+
+test('gospel: drawing shows lines up to the reading point, and the person walks over at the end', () => {
+  const fx = renderGospel().querySelector('.bridge');
+  bridgeApply(fx, 0);
+  const first = fx.querySelector('path[data-at="0,0.45"]');
+  assertEqual(first.style.opacity, '0');
+  assertEqual(fx.querySelector('text[data-at="0.22,0.42"]').style.opacity, '0', 'labels wait their turn too');
+  assertEqual(fx.querySelector('[data-who]').getAttribute('transform'), 'translate(0.0,0.0)');
+  bridgeApply(fx, 1);
+  assertEqual(first.style.opacity, '1');
+  assertEqual(first.style.strokeDashoffset, '0');
+  assertEqual(fx.querySelector('.bridge-steps li.now').textContent, 'Man');
+  bridgeApply(fx, 4);
+  assertEqual(fx.querySelector('[data-who]').getAttribute('transform'), 'translate(218.0,0.0)');
+  assertEqual(fx.querySelectorAll('.bridge-steps li.done').length, 4);
+  assertEqual(fx.querySelector('text[data-at="0.22,0.42"]').style.getPropertyValue('--p'), '1.000');
+});
+
+test('gospel: with Reduce Motion the drawing is simply complete', () => {
+  const real = window.matchMedia;
+  const box = h('div', null, renderGospel());
+  try {
+    window.matchMedia = q => ({ matches: q.includes('reduce'), media: q });
+    updateBridge(box);
+    const fx = box.querySelector('.bridge');
+    assert(!fx.classList.contains('drawing'), 'no drawing-in effect');
+    assertEqual([...fx.querySelectorAll('[data-at]')].every(el => el.style.opacity === '1'), true);
+    assertEqual(fx.querySelector('[data-who]').getAttribute('transform'), 'translate(218.0,0.0)');
+  } finally {
+    window.matchMedia = real;
+  }
 });

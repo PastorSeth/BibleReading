@@ -14,6 +14,13 @@
   src: url('fonts/AlegreyaSans-Bold.woff2') format('woff2');
   font-weight: 700; font-style: normal; font-display: swap;
 }
+/* Biró Script (ingoFonts, Ingo Zimmermann), used with permission: the
+   handwriting in the Gospel bridge drawing. */
+@font-face {
+  font-family: 'Biro Script';
+  src: url('fonts/biro-script.otf') format('opentype');
+  font-display: swap;
+}
 @font-face {
   font-family: 'Vollkorn';
   src: url('fonts/Vollkorn-Bold.woff2') format('woff2');
@@ -23,6 +30,7 @@
 :root {
   --paper: #E7E7E2; --ink: #1E1F1F; --ink-2: #474A49; --rule: #B5B6B0; --faint: #CFD0CA; --field: #F1F1ED;
   --nt: #3F6E6C; --ot: #95533F; --wis: #85703A;
+  --pen: #96402F; /* the red pen in the Gospel bridge */
   --face: 'Alegreya Sans', 'Avenir Next', 'Segoe UI', Roboto, sans-serif; /* labels, buttons, small text */
   --display: 'Vollkorn', Georgia, 'Times New Roman', serif; /* the date, readings and headings */
   color-scheme: light;
@@ -254,3 +262,41 @@ nav.tabs { display: grid; grid-template-columns: repeat(5, 1fr); border-top: 2px
 nav.tabs a { display: grid; justify-items: center; gap: 3px; font-size: 13px; color: var(--ink-2); text-decoration: none; padding: 2px 0 4px; }
 nav.tabs a.on { color: var(--ink); font-weight: 700; }
 nav.tabs svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+
+/* ---------- The Gospel (Extras) ----------
+   The bridge drawing pins to the top while God, Man, Jesus and Response
+   scroll up under it. app.js draws each line (stroke-dashoffset) and
+   writes on each label (--p) as its part is read; .drawing is only set
+   when motion is allowed, so otherwise the drawing is simply complete. */
+.bridge { margin: 18px 0 0; }
+.bridge-stage { position: sticky; top: 0; z-index: 2; background: var(--paper); padding: 10px 0 8px; border-bottom: 1px solid var(--rule); }
+.bridge-art { display: block; width: 100%; height: auto; max-height: 34vh; }
+.bridge-steps { display: flex; justify-content: space-between; list-style: none; padding: 0; margin: 6px 0 0; font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+.bridge-steps li { color: var(--ink-2); opacity: .55; transition: color .2s, opacity .2s; }
+.bridge-steps li.done { color: var(--ink); opacity: 1; }
+.bridge-steps li.now { color: var(--pen); opacity: 1; }
+.bridge-part { padding: 26px 0 8px; min-height: 55vh; }
+/* The last part can scroll all the way up under the drawing, as the others do. */
+.bridge-part:last-child { min-height: calc(66vh + 20px); }
+.gospel .bridge-part h2 { margin: 0 0 12px; font-size: 40px; line-height: 1; letter-spacing: .02em; text-transform: uppercase; }
+.part-n { display: block; margin-bottom: 6px; font-family: var(--face); font-size: 12px; font-weight: 700; letter-spacing: .14em; color: var(--pen); }
+.verse { margin: 18px 0 10px; padding: 2px 0 2px 16px; border-left: 3px solid var(--pen); }
+.extras .verse p { margin: 0; font-size: 18px; line-height: 1.5; }
+.verse cite { display: block; margin-top: 8px; font-style: normal; font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--pen); }
+
+/* The pen: ink lines, God's light, the pit's walls, Jesus's cross and our
+   response in red; the small lines thinner; the cliffs gone over twice. */
+.bridge-art path { fill: none; stroke: var(--ink); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.bridge-art .red path, .bridge-art path.red { stroke: var(--pen); }
+.bridge-art path.thick { stroke-width: 2.7; }
+.bridge-art path.again { stroke-width: 1.4; stroke-opacity: .45; }
+.bridge-art path.faith { stroke: var(--pen); stroke-width: 1.6; }
+.bridge-art .rays path, .bridge-art path.pit, .bridge-art [data-who] path { stroke-width: 1.6; }
+.bridge-art path.head { fill: var(--paper); }
+.bridge-art text { font-family: 'Biro Script', 'Bradley Hand', 'Segoe Print', cursive; fill: var(--ink); text-anchor: middle; }
+.bridge-art text.red { fill: var(--pen); }
+.drawing .bridge-art path[data-at] { stroke-dasharray: 1; stroke-dashoffset: 1; }
+.drawing .bridge-art text[data-at] {
+  -webkit-clip-path: inset(-30% calc((1 - var(--p, 0)) * 100%) -30% -10%);
+  clip-path: inset(-30% calc((1 - var(--p, 0)) * 100%) -30% -10%);
+}

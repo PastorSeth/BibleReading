@@ -19,7 +19,8 @@ Weekends are left open for catching up or rest. Each year keeps its own checkmar
 - `sync.js` and `sync-config.js`: the optional link to your Google Sheet. **`sync-config.js` is the file you'll edit** to turn accounts on.
 - `app.js`, `index.html`, `style.css`: the screens and the look.
 - `manifest.json`, `service-worker.js`, `icons/`: what makes it installable and work offline.
-- `fonts/`: the Atkinson Hyperlegible font files (until they're added, phones use a similar built-in font).
+- `gospel.js`: the words and the hand-drawn bridge for Extras → The Gospel (from the First Ten Days study, Day 5).
+- `fonts/`: Vollkorn and Alegreya Sans for the app, and Biró Script for the handwriting in the Gospel bridge (see `fonts/README.md`).
 - `sheet-setup/apps-script-code.gs`: the script that runs inside your Google Sheet for accounts and syncing.
 - `tests/` and `tools/run-tests.sh`: automated checks.
 - `docs/`: the design, the build plan and the mockups.

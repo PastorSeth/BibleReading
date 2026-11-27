@@ -94,7 +94,7 @@ function parseRoute(hash) {
   if (planYear) return { name: 'plan', year: Math.max(FIRST_YEAR, Number(planYear[1])) };
   const printYear = path.match(/^\/print\/(\d{4})$/);
   if (printYear) return { name: 'print', year: Math.max(FIRST_YEAR, Number(printYear[1])) };
-  if (['/plan', '/catchup', '/account', '/extras', '/print', '/about'].includes(path)) return { name: path.slice(1) };
+  if (['/plan', '/catchup', '/account', '/extras', '/print', '/about', '/gospel'].includes(path)) return { name: path.slice(1) };
   return { name: 'today' };
 }
 
@@ -544,6 +544,7 @@ function renderExtras(now) {
     h('header', null, h('div', { class: 'bar' }, h('span', { text: 'Bible Reading' })), h('h1', { text: 'Extras' })),
     h('main', { class: 'extras' },
       h('nav', { class: 'extras-menu', 'aria-label': 'Extras' },
+        extrasRow('#/gospel', 'The Gospel', 'The good news of Jesus in four parts: God, Man, Jesus and our response.'),
         extrasRow('#/about', 'About this reading plan', 'Where the readings come from and how the year works.'),
         extrasRow(`#/print/${year}`, 'Printable plan', 'The whole year on paper, with a box for every reading.')),
       h('section', null, h('h2', { text: 'Share this app with a friend' }),
@@ -573,6 +574,94 @@ function renderAbout() {
           h('li', null, h('b', { text: 'Tuesday and Thursday: ' }), 'a short passage from Proverbs, about nine verses. You read the whole book over the year, a little at a time.')))));
 }
 
+/* ---------- The Gospel (Extras) ----------
+   Content and drawing are in gospel.js. The drawing pins to the top of
+   the screen while God, Man, Jesus and Response scroll up under it, and
+   each part draws its piece of the bridge as it's read. */
+
+function renderGospel() {
+  const art = document.createElementNS(SVG_NS, 'svg');
+  art.setAttribute('class', 'bridge-art');
+  art.setAttribute('viewBox', '0 0 360 232');
+  art.setAttribute('role', 'img');
+  art.setAttribute('aria-label', BRIDGE_SUMMARY);
+  art.innerHTML = BRIDGE_ART; // fixed markup from gospel.js, never user text
+  const parts = GOSPEL_PARTS.map((part, i) => h('section', { class: 'bridge-part' },
+    h('h2', null, h('span', { class: 'part-n', text: `${i + 1} of ${GOSPEL_PARTS.length}` }), h('span', { class: 'part-name', text: part.name })),
+    part.paragraphs.map(text => h('p', { text })),
+    part.list ? h('ul', { class: 'about-list' }, part.list.map(([lead, rest]) => h('li', null, h('b', { text: lead }), ` ${rest}`))) : null,
+    h('blockquote', { class: 'verse' }, h('p', { text: part.verse[1] }), h('cite', { text: part.verse[0] }))));
+  return h('div', { class: 'screen' },
+    h('header', null, h('div', { class: 'bar' }, backLink()), h('h1', { text: 'What is the Gospel?' })),
+    h('main', { class: 'extras about gospel' },
+      GOSPEL_INTRO.map(text => h('p', { text })),
+      h('div', { class: 'bridge' },
+        h('div', { class: 'bridge-stage' }, art,
+          h('ol', { class: 'bridge-steps', 'aria-hidden': 'true' }, GOSPEL_PARTS.map(part => h('li', { text: part.name })))),
+        parts)));
+}
+
+const clamp01 = v => Math.min(1, Math.max(0, v));
+const BRIDGE_WALK = 218; // how far the person walks, left cliff to right
+
+/* How much of the bridge is drawn, 0 to 4: each part counts from 0 to 1,
+   starting when its top slides up to the reading line (just under the
+   drawing) and done 60% of the way through. The last part has only the
+   rest of the page to slide, so it finishes, at the latest, when the
+   page reaches its end. */
+function bridgeProgress(stageBottom, viewBottom, remaining, parts) {
+  const line = stageBottom + 0.15 * Math.max(0, viewBottom - stageBottom);
+  return parts.reduce((s, part, i) => {
+    const passed = line - part.top; // how far the part has slid up past the line
+    let span = part.height * 0.6;
+    if (i === parts.length - 1) {
+      const total = passed + Math.max(0, remaining); // how far it can ever slide
+      if (total <= 0) return s + (remaining <= 1 ? 1 : 0);
+      span = Math.min(span, total);
+    }
+    return s + clamp01(passed / span);
+  }, 0);
+}
+
+// Draw every line and label whose data-at window the reading has reached.
+function bridgeApply(fx, s) {
+  fx.querySelectorAll('[data-at]').forEach(el => {
+    const [a, b] = el.dataset.at.split(',').map(Number);
+    const p = clamp01((s - a) / (b - a));
+    if (el.tagName.toLowerCase() === 'path') el.style.strokeDashoffset = (1 - p).toFixed(3);
+    else el.style.setProperty('--p', p.toFixed(3));
+    // Nothing shows before its turn: a line's round pen tip or a letter's flourish would peek out.
+    el.style.opacity = p > 0 ? '1' : '0';
+  });
+  // Response: the person walks across the cross, stepping up onto it.
+  const who = fx.querySelector('[data-who]');
+  if (who) {
+    const dx = BRIDGE_WALK * clamp01((s - 3) / 0.7);
+    const x = 55 + dx;
+    const up = x < 98 ? 0 : x < 110 ? (x - 98) / 12 : x < 250 ? 1 : x < 262 ? (262 - x) / 12 : 0;
+    who.setAttribute('transform', `translate(${dx.toFixed(1)},${(-up * Number(who.dataset.lift || 0) || 0).toFixed(1)})`);
+  }
+  const now = Math.min(3, Math.floor(s));
+  fx.querySelectorAll('.bridge-steps li').forEach((li, i) => {
+    li.classList.toggle('now', s > 0.05 && i === now && s < 3.95);
+    li.classList.toggle('done', i < now || s >= 3.95);
+  });
+}
+
+// Reads where the parts are on screen and draws to match. With Reduce Motion it's simply complete.
+function updateBridge(root) {
+  const fx = root.querySelector('.bridge');
+  if (!fx) return;
+  const still = !window.matchMedia || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  fx.classList.toggle('drawing', !still);
+  if (still) { bridgeApply(fx, 4); return; }
+  const tabs = document.querySelector('nav.tabs');
+  const viewBottom = Math.min(window.innerHeight, tabs ? tabs.getBoundingClientRect().top : window.innerHeight);
+  const remaining = document.documentElement.scrollHeight - (window.scrollY + window.innerHeight);
+  const parts = [...fx.querySelectorAll('.bridge-part')].map(el => { const r = el.getBoundingClientRect(); return { top: r.top, height: r.height }; });
+  bridgeApply(fx, bridgeProgress(fx.querySelector('.bridge-stage').getBoundingClientRect().bottom, viewBottom, remaining, parts));
+}
+
 function renderPrint(year, now, settings = {}) {
   const thisYear = currentYear(now);
   const years = [thisYear, thisYear + 1];
@@ -599,7 +688,7 @@ function renderPrint(year, now, settings = {}) {
 function tabBar(route, now) {
   const tabs = [['extras', '#/extras', 'Extras'], ['week', `#/week/${currentYear(now)}/${currentWeek(now)}`, 'Week'],
     ['today', '#/', 'Today'], ['plan', '#/plan', 'Plan'], ['account', '#/account', 'Account']];
-  const active = { catchup: 'today', print: 'extras', about: 'extras' }[route.name] || route.name;
+  const active = { catchup: 'today', print: 'extras', about: 'extras', gospel: 'extras' }[route.name] || route.name;
   return h('nav', { class: 'tabs', 'aria-label': 'Sections' }, tabs.map(([name, href, label]) =>
     h('a', { href, class: name === active ? 'on' : null, 'aria-current': name === active ? 'page' : null }, icon(name), label)));
 }
@@ -668,6 +757,7 @@ function render() {
     extras: () => renderExtras(now),
     print: () => renderPrint(route.year || currentYear(now), now, settings),
     about: () => renderAbout(),
+    gospel: () => renderGospel(),
   };
   const focusedId = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.id : null;
   const previewing = /[?&]date=/.test(location.search);
@@ -679,6 +769,7 @@ function render() {
     if (prompt) screen.querySelector('header').after(prompt);
   }
   app.replaceChildren(...[previewing ? previewBanner(now) : null, screen, tabBar(route, now)].filter(Boolean));
+  updateBridge(app);
   if (focusedId) {
     const again = app.querySelector(`.tick[data-id="${focusedId}"]`);
     if (again) again.focus();
@@ -788,6 +879,10 @@ function boot() {
     if (document.visibilityState === 'visible') { safeRender(); scheduleSync(); }
   });
   window.addEventListener('online', scheduleSync);
+  let bridgeFrame = 0;
+  const drawBridge = () => { cancelAnimationFrame(bridgeFrame); bridgeFrame = requestAnimationFrame(() => updateBridge(app)); };
+  window.addEventListener('scroll', drawBridge, { passive: true });
+  window.addEventListener('resize', drawBridge);
   window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredInstall = e; render(); });
   window.addEventListener('appinstalled', () => { deferredInstall = null; render(); });
 

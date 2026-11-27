@@ -3,7 +3,8 @@ test('sw: app shell lists every app file', async () => {
   assert(/const CACHE_NAME = 'bible-reading-2027-v\d+';/.test(sw), 'CACHE_NAME is versioned');
   ['./', 'index.html', 'style.css', 'readings.js', 'plan.js', 'links.js', 'store.js', 'sync-config.js', 'sync.js',
     'app.js', 'manifest.json', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png',
-    'fonts/AlegreyaSans-Regular.woff2', 'fonts/AlegreyaSans-Bold.woff2', 'fonts/Vollkorn-Bold.woff2']
+    'fonts/AlegreyaSans-Regular.woff2', 'fonts/AlegreyaSans-Bold.woff2', 'fonts/Vollkorn-Bold.woff2',
+    'gospel.js', 'fonts/biro-script.otf']
     .forEach(f => assert(sw.includes(`'${f}'`), `service worker should cache ${f}`));
 });
 
