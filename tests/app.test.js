@@ -540,15 +540,27 @@ test('gospel: the page has the four parts, their verses, and the drawing', () =>
 });
 
 test('gospel: each part draws as it is read, and the end of the page finishes it', () => {
-  // Drawing at the top ends at 300px, the screen's reading area at 800px: the reading line is at 375px.
-  assertEqual(bridgeProgress(300, 800, 5000, [{ top: 900, height: 500 }]), 0, 'a part below the line has not started');
-  assertClose(bridgeProgress(300, 800, 5000, [{ top: 225, height: 500 }]), 0.5, 1e-9, 'halfway to 60% of the part');
-  assertEqual(bridgeProgress(300, 800, 5000, [{ top: 0, height: 500 }]), 1);
+  // The drawing at the top ends at 300px; a part starts once its top slides 10px under it.
+  const parts = [{ top: 300, height: 500 }, { top: 800, height: 500 }, { top: 1300, height: 500 }, { top: 1800, height: 500 }];
+  assertEqual(bridgeProgress(300, 5000, parts), 0, 'at the top of the page nothing is drawn yet');
+  assertEqual(bridgeProgress(300, 5000, [{ top: 900, height: 500 }]), 0, 'a part below the drawing has not started');
+  assertClose(bridgeProgress(300, 5000, [{ top: 140, height: 500 }]), 0.5, 1e-9, 'halfway to 60% of the part');
+  assertEqual(bridgeProgress(300, 5000, [{ top: -100, height: 500 }]), 1);
   // The last part gets only what's left of the page: here 150px of travel in all, 50px of it done.
-  assertClose(bridgeProgress(300, 800, 100, [{ top: 325, height: 500 }]), 1 / 3, 1e-9);
+  assertClose(bridgeProgress(300, 100, [{ top: 240, height: 500 }]), 1 / 3, 1e-9);
   const bottom = [{ top: -1300, height: 500 }, { top: -800, height: 500 }, { top: -300, height: 500 }, { top: 300, height: 450 }];
-  assertEqual(bridgeProgress(300, 800, 0, bottom), 4, 'scrolled to the bottom, the drawing is complete');
-  assertEqual(bridgeProgress(300, 800, 0, [{ top: 900, height: 500 }]), 1, 'even if the last part never reaches the line');
+  assertEqual(bridgeProgress(300, 0, bottom), 4, 'scrolled to the bottom, the drawing is complete');
+  assertEqual(bridgeProgress(300, 0, [{ top: 900, height: 500 }]), 1, 'even if the last part never reaches the drawing');
+});
+
+test('gospel: the last part draws over all the scrolling left once the part before it is done', () => {
+  // Line at 290. Jesus (third) is 400px past it, done at 300, so 100px past done; 100px of page left.
+  const parts = [{ top: -2000, height: 500 }, { top: -1500, height: 500 }, { top: -110, height: 500 }, { top: 400, height: 600 }];
+  assertClose(bridgeProgress(300, 100, parts), 3.5, 1e-9, 'halfway through what is left');
+  assertClose(bridgeProgress(300, 300, parts), 3.25, 1e-9);
+  assertEqual(bridgeProgress(300, 0, parts), 4);
+  const justDone = [{ top: -2000, height: 500 }, { top: -1500, height: 500 }, { top: -10, height: 500 }, { top: 500, height: 600 }];
+  assertEqual(bridgeProgress(300, 400, justDone), 3, 'it starts only once the part before is finished');
 });
 
 test('gospel: drawing shows lines up to the reading point, and the person walks over at the end', () => {

@@ -605,21 +605,23 @@ const clamp01 = v => Math.min(1, Math.max(0, v));
 const BRIDGE_WALK = 218; // how far the person walks, left cliff to right
 
 /* How much of the bridge is drawn, 0 to 4: each part counts from 0 to 1,
-   starting when its top slides up to the reading line (just under the
-   drawing) and done 60% of the way through. The last part has only the
-   rest of the page to slide, so it finishes, at the latest, when the
-   page reaches its end. */
-function bridgeProgress(stageBottom, viewBottom, remaining, parts) {
-  const line = stageBottom + 0.15 * Math.max(0, viewBottom - stageBottom);
+   starting once its top has slid 10px under the drawing (so nothing is
+   drawn until the drawing is pinned and you start reading) and done 60%
+   of the way through. The last part has only the rest of the page: it
+   also draws over whatever scrolling is left once the part before it is
+   done, so it never rushes and always finishes at the end of the page. */
+function bridgeProgress(stageBottom, remaining, parts) {
+  const line = stageBottom - 10;
+  const left = Math.max(0, remaining);
   return parts.reduce((s, part, i) => {
-    const passed = line - part.top; // how far the part has slid up past the line
-    let span = part.height * 0.6;
-    if (i === parts.length - 1) {
-      const total = passed + Math.max(0, remaining); // how far it can ever slide
-      if (total <= 0) return s + (remaining <= 1 ? 1 : 0);
-      span = Math.min(span, total);
-    }
-    return s + clamp01(passed / span);
+    const passed = line - part.top; // how far the part has slid up under the drawing
+    const span = part.height * 0.6;
+    if (i < parts.length - 1) return s + clamp01(passed / span);
+    const total = passed + left; // how far it can ever slide
+    const own = total <= 0 ? (left <= 1 ? 1 : 0) : clamp01(passed / Math.min(span, total));
+    const before = parts[i - 1];
+    const since = before ? (line - before.top) - before.height * 0.6 : 0; // scrolled since that part was done
+    return s + Math.max(own, since > 0 ? since / (since + left) : 0);
   }, 0);
 }
 
@@ -655,11 +657,9 @@ function updateBridge(root) {
   const still = !window.matchMedia || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   fx.classList.toggle('drawing', !still);
   if (still) { bridgeApply(fx, 4); return; }
-  const tabs = document.querySelector('nav.tabs');
-  const viewBottom = Math.min(window.innerHeight, tabs ? tabs.getBoundingClientRect().top : window.innerHeight);
   const remaining = document.documentElement.scrollHeight - (window.scrollY + window.innerHeight);
   const parts = [...fx.querySelectorAll('.bridge-part')].map(el => { const r = el.getBoundingClientRect(); return { top: r.top, height: r.height }; });
-  bridgeApply(fx, bridgeProgress(fx.querySelector('.bridge-stage').getBoundingClientRect().bottom, viewBottom, remaining, parts));
+  bridgeApply(fx, bridgeProgress(fx.querySelector('.bridge-stage').getBoundingClientRect().bottom, remaining, parts));
 }
 
 function renderPrint(year, now, settings = {}) {
