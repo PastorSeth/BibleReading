@@ -21,7 +21,7 @@ test('app: parseRoute', () => {
   assertEqual(parseRoute('#/week/2028/3'), { name: 'week', year: 2028, week: 3 });
   assertEqual(parseRoute('#/plan'), { name: 'plan' });
   assertEqual(parseRoute('#/plan/2028'), { name: 'plan', year: 2028 });
-  assertEqual(parseRoute('#/plan/1999'), { name: 'plan', year: 2027 });
+  assertEqual(parseRoute('#/plan/1999'), { name: 'plan', year: 2026 });
   assertEqual(parseRoute('#/catchup'), { name: 'catchup' });
   assertEqual(parseRoute('#/account'), { name: 'account' });
   assertEqual(parseRoute('#/nope'), { name: 'today' });
@@ -58,7 +58,7 @@ test('app: weekend, before and after', () => {
   const sat = renderToday(new Date(2027, 0, 9), {}, SETTINGS, NO_SYNC).textContent;
   assertIncludes(sat, 'Weekend');
   assertIncludes(sat, 'Luke 6'); // a peek at Monday
-  assertIncludes(renderToday(new Date(2027, 0, 1), {}, SETTINGS, NO_SYNC).textContent, 'January 4');
+  assertIncludes(renderToday(new Date(2027, 0, 2), {}, SETTINGS, NO_SYNC).textContent, 'January 4');
   assertIncludes(renderToday(new Date(2028, 0, 1), {}, SETTINGS, NO_SYNC).textContent, 'Starts Monday, January 3');
   const after = renderToday(new Date(2028, 11, 30), done('2028-w01d1-nt', '2027-w01d1-ot'), SETTINGS, NO_SYNC).textContent;
   assertIncludes(after, '1 of 780');
@@ -117,7 +117,8 @@ test('app: week view', () => {
   assertEqual(el.querySelector('a.prev').getAttribute('href'), '#/week/2027/1');
   assertEqual(el.querySelector('a.next').getAttribute('href'), '#/week/2027/3');
   assertEqual(renderWeek(2027, 52, new Date(2027, 0, 4), {}, SETTINGS, NO_SYNC).querySelector('a.next').getAttribute('href'), '#/week/2028/1');
-  assertEqual(renderWeek(2027, 1, new Date(2027, 0, 4), {}, SETTINGS, NO_SYNC).querySelectorAll('a.prev').length, 0);
+  assertEqual(renderWeek(2026, 1, new Date(2027, 0, 4), {}, SETTINGS, NO_SYNC).querySelectorAll('a.prev').length, 0);
+  assertEqual(renderWeek(2027, 1, new Date(2027, 0, 4), {}, SETTINGS, NO_SYNC).querySelector('a.prev').getAttribute('href'), '#/week/2026/52');
   assertEqual(renderWeek(2028, 1, new Date(2028, 0, 4), {}, SETTINGS, NO_SYNC).querySelector('a.prev').getAttribute('href'), '#/week/2027/52');
   assertIncludes(renderWeek(2028, 1, new Date(2028, 0, 4), {}, SETTINGS, NO_SYNC).textContent, 'Monday, January 3');
 });
@@ -135,8 +136,8 @@ test('app: plan year switch', () => {
   const el = renderPlan(2027, new Date(2028, 0, 5), done('2027-w01d1-nt'));
   assertIncludes(el.querySelector('h1').textContent, '2027');
   const years = [...el.querySelectorAll('.years a')].map(a => [a.textContent, a.getAttribute('href'), a.getAttribute('aria-current')]);
-  assertEqual(years, [['2027', '#/plan/2027', 'page'], ['2028', '#/plan/2028', null]]);
-  assertEqual(renderPlan(2027, new Date(2027, 5, 1), {}).querySelectorAll('.years').length, 0, 'no switch while there is only one year');
+  assertEqual(years, [['2026', '#/plan/2026', null], ['2027', '#/plan/2027', 'page'], ['2028', '#/plan/2028', null]]);
+  assertEqual(renderPlan(2026, new Date(2026, 5, 1), {}).querySelectorAll('.years').length, 0, 'no switch while there is only one year');
 });
 
 test('app: catch-up view', () => {

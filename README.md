@@ -2,7 +2,7 @@
 
 A companion app for a yearly Bible reading plan, installable on any phone as a "PWA". It doesn't show Bible text. It tells you what to open your own Bible to today, remembers what you've read, and, if you want, lets reading partners see each other's checkmarks.
 
-**The plan:** the same plan every year. It starts on the first Monday of January and runs 52 weeks, Monday to Friday: 780 readings. The first year is 2027 (Monday, January 4 to Friday, December 31). Each weekday has:
+**The plan:** the same plan every year. It starts on the first Monday of January and runs 52 weeks, Monday to Friday: 780 readings. 2026 runs as a practice year (it started Monday, January 5, 2026, and its last reading falls on Friday, January 1, 2027); the real first year is 2027 (Monday, January 4 to Friday, December 31). When a year starts late in the first week of January, its last few readings fall in the next January. Each weekday has:
 
 - **New Testament:** Foundations NT260, one chapter a day.
 - **Old Testament:** the F260 Old Testament selection, one reading a day.

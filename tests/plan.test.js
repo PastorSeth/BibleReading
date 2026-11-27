@@ -10,12 +10,24 @@ test('plan: each year starts on the first Monday of January', () => {
 test('plan: start and end of a year', () => {
   assertEqual(planDayForDate(new Date(2027, 0, 4, 6)), { status: 'reading', year: 2027, week: 1, weekday: 1 });
   assertEqual(planDayForDate(new Date(2027, 11, 31, 23, 59)), { status: 'reading', year: 2027, week: 52, weekday: 5 });
-  assertEqual(planDayForDate(new Date(2027, 0, 1)), { status: 'before', year: 2027, daysUntilStart: 3 });
+  assertEqual(planDayForDate(new Date(2027, 0, 3)), { status: 'before', year: 2027, daysUntilStart: 1 });
   assertEqual(planDayForDate(new Date(2028, 11, 30)), { status: 'after', year: 2028 });
 });
 
-test('plan: before the first year counts down to 2027', () => {
-  assertEqual(planDayForDate(new Date(2026, 10, 26, 15)), { status: 'before', year: 2027, daysUntilStart: 39 });
+test('plan: 2026 is the first (practice) year', () => {
+  assertEqual(FIRST_YEAR, 2026);
+  assertEqual(ymd(planStart(2026)), [2026, 1, 5]);
+  assertEqual(planDayForDate(new Date(2026, 10, 26, 15)), { status: 'reading', year: 2026, week: 47, weekday: 4 });
+  assertEqual(planDayForDate(new Date(2025, 11, 31)), { status: 'before', year: 2026, daysUntilStart: 5 });
+});
+
+test('plan: a year whose last Friday falls in the next January', () => {
+  assertEqual(ymd(dateFor(2026, 52, 5)), [2027, 1, 1]);
+  assertEqual(planDayForDate(new Date(2027, 0, 1, 9)), { status: 'reading', year: 2026, week: 52, weekday: 5 });
+  assertEqual(planDayForDate(new Date(2027, 0, 2)), { status: 'before', year: 2027, daysUntilStart: 2 });
+  assertEqual(planDayForDate(new Date(2031, 0, 3, 9)), { status: 'reading', year: 2030, week: 52, weekday: 5 });
+  assertEqual(planDayForDate(new Date(2031, 0, 4)), { status: 'before', year: 2031, daysUntilStart: 2 });
+  assertEqual(allItemIdsBefore(new Date(2027, 0, 1, 9)).length, 777);
 });
 
 test('plan: the plan restarts every January', () => {
@@ -36,7 +48,7 @@ test('plan: DST days', () => {
 });
 
 test('plan: dateFor round trip', () => {
-  [2027, 2028, 2032].forEach(y => {
+  [2026, 2027, 2028, 2030, 2032].forEach(y => {
     for (let w = 1; w <= 52; w++) {
       for (let d = 1; d <= 5; d++) {
         const got = planDayForDate(dateFor(y, w, d));
@@ -80,7 +92,7 @@ test('plan: allItemIdsBefore covers only the current plan year', () => {
   assertEqual(sat.length, 15);
   assertEqual(sat[14], '2027-w01d5-ps');
   assertEqual(allItemIdsBefore(new Date(2027, 0, 4, 12)), []);
-  assertEqual(allItemIdsBefore(new Date(2026, 11, 1)), []);
+  assertEqual(allItemIdsBefore(new Date(2025, 11, 1)), []);
   assertEqual(allItemIdsBefore(new Date(2028, 0, 2)), [], 'a new year starts with nothing to catch up');
   assertEqual(allItemIdsBefore(new Date(2028, 0, 5, 9)).length, 6);
   assert(allItemIdsBefore(new Date(2028, 0, 5, 9)).every(id => id.startsWith('2028-')));

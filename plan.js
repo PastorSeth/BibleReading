@@ -2,12 +2,12 @@
    PLAN CALENDAR — which readings fall on which day.
    The same plan runs every year: it starts on the first Monday
    of January and runs 52 weeks, Monday to Friday. Weekends are
-   open for catching up. 2027 is the first year. "Today" is the
+   open for catching up. 2026 is a practice year before 2027. "Today" is the
    phone's own local date, and dates are compared as whole
    calendar days (never clock times) so daylight-saving days work.
    ============================================================ */
 
-const FIRST_YEAR = 2027;
+const FIRST_YEAR = 2026; // 2026 is a practice year; the real start is 2027
 const WEEKS = 52;
 
 const TRACK_LABELS = { nt: 'New Testament', ot: 'Old Testament', ps: 'Psalm', pr: 'Proverbs' };
@@ -26,8 +26,18 @@ function planStart(year) {
   return new Date(year, 0, 1 + ((8 - jan1) % 7));
 }
 
+// Which year's plan a day belongs to. When a plan starts late in the first
+// week of January its last Friday falls in the next January (2026's ends on
+// January 1, 2027), so early-January days may still belong to last year.
+function planYearFor(date) {
+  const y = Math.max(FIRST_YEAR, date.getFullYear());
+  const today = localDayNumber(date);
+  if (today >= localDayNumber(planStart(y)) || y === FIRST_YEAR) return y;
+  return today <= localDayNumber(dateFor(y - 1, WEEKS, 5)) ? y - 1 : y;
+}
+
 function planDayForDate(date) {
-  const year = Math.max(FIRST_YEAR, date.getFullYear());
+  const year = planYearFor(date);
   const diff = localDayNumber(date) - localDayNumber(planStart(year));
   if (diff < 0) return { status: 'before', year, daysUntilStart: -diff };
   const week = Math.floor(diff / 7) + 1;
