@@ -215,6 +215,8 @@ a.btn { display: inline-block; text-decoration: none; }
 .print-dow { color: var(--ink-2); }
 .print-ref { display: flex; align-items: flex-start; gap: 5px; }
 .print-ref .box { flex: none; width: 10px; height: 10px; border: 1.5px solid var(--ink); margin-top: 4px; }
+/* New Testament only: the one reading spans the row. */
+.plan-days li > span:nth-child(2):last-child, .print-day > .print-ref:nth-child(2):last-child { grid-column: 2 / -1; }
 
 /* Paper: two columns of weeks, one line per day, so a year fits on two pages
    (one sheet printed double-sided). */

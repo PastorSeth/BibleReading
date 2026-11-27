@@ -163,12 +163,18 @@ function readingList(items, progress, partners, settings) {
   return h('ul', { class: 'readings' }, items.map(item => readingRow(item, isDone(progress, item.id), partners, settings)));
 }
 
-function catchUpLine(progress, now) {
-  const n = catchUpDays(progress, now);
+// "New Testament only" shows just the NT track; otherwise null means the whole plan.
+const tracksFor = settings => (settings && settings.ntOnly ? ['nt'] : null);
+const visible = (items, settings) => items.filter(i => inTracks(i.id, tracksFor(settings)));
+
+function catchUpLine(progress, now, settings) {
+  if (settings && settings.hideBehind) return null;
+  const n = catchUpDays(progress, now, tracksFor(settings));
   return n ? h('p', { class: 'catch' }, h('a', { href: '#/catchup', text: `${plural(n, 'reading')} to catch up` })) : null;
 }
 
-function weekGrid(year, week, now, progress, partners) {
+function weekGrid(year, week, now, progress, partners, settings) {
+  const tracks = tracksFor(settings);
   const day = planDayForDate(now);
   const today = day.status === 'reading' && day.year === year && day.week === week ? day.weekday : 0;
   if (selectedPartner >= partners.length) selectedPartner = 0;
@@ -176,7 +182,7 @@ function weekGrid(year, week, now, progress, partners) {
 
   const head = [h('span')].concat([1, 2, 3, 4, 5].map(d =>
     h('span', { class: d === today ? 'day now' : 'day', text: dayName(dateFor(year, week, d)) })));
-  const rows = [['nt', 'New Test.'], ['ot', 'Old Test.'], ['wis', 'Psalm/Prov.']].map(([cls, label], r) => [
+  const rows = [['nt', 'New Test.'], ['ot', 'Old Test.'], ['wis', 'Psalm/Prov.']].map(([cls, label], r) => (tracks && !tracks.includes(cls) ? [] : [
     h('span', { class: `label ${cls}`, text: label }),
     [1, 2, 3, 4, 5].map(d => {
       const id = readingsFor(year, week, d)[r].id;
@@ -184,11 +190,11 @@ function weekGrid(year, week, now, progress, partners) {
         h('i', { class: isDone(progress, id) ? 'me on' : 'me' }),
         shown ? h('i', { class: `her ${shown.pattern}${isDone(shown.progress, id) ? ' on' : ''}` }) : null);
     }),
-  ]);
+  ]));
 
   const counts = partners.length >= 2
-    ? h('p', { class: 'counts', text: [`You ${weekDaysDone(progress, year, week)} of 5`]
-      .concat(partners.map(p => `${p.name} ${weekDaysDone(p.progress, year, week)} of 5`)).join(', ') })
+    ? h('p', { class: 'counts', text: [`You ${weekDaysDone(progress, year, week, tracks)} of 5`]
+      .concat(partners.map(p => `${p.name} ${weekDaysDone(p.progress, year, week, tracks)} of 5`)).join(', ') })
     : null;
   const picker = partners.length >= 2
     ? h('label', { class: 'switch-label' }, 'Showing ',
@@ -205,8 +211,8 @@ function weekGrid(year, week, now, progress, partners) {
     key, counts);
 }
 
-function previewList(year, week, weekday) {
-  return h('ul', { class: 'preview' }, readingsFor(year, week, weekday).map(item =>
+function previewList(year, week, weekday, settings) {
+  return h('ul', { class: 'preview' }, visible(readingsFor(year, week, weekday), settings).map(item =>
     h('li', { class: trackClass(item.track) }, h('i', { class: 'solid' }), h('span', { text: displayRef(item.ref) }), h('span', { class: 'muted', text: item.label }))));
 }
 
@@ -240,13 +246,13 @@ function renderToday(now, progress, settings, syncState) {
   if (day.status === 'before') {
     append(root.querySelector('header'), h('h1', { text: `Starts ${longDate(planStart(day.year))}` }),
       h('p', { class: 'seq', text: `${plural(day.daysUntilStart, 'day')} to go` }));
-    append(main, h('h2', { text: 'The first day' }), previewList(day.year, 1, 1),
+    append(main, h('h2', { text: 'The first day' }), previewList(day.year, 1, 1, settings),
       h('p', { class: 'catch' }, h('a', { href: `#/week/${day.year}/1`, text: 'Preview week 1' })));
     return root;
   }
   if (day.status === 'after') {
     let read = 0;
-    for (let w = 1; w <= WEEKS; w++) read += weekDaysDone(progress, day.year, w);
+    for (let w = 1; w <= WEEKS; w++) read += weekDaysDone(progress, day.year, w, tracksFor(settings));
     append(root.querySelector('header'), h('h1', { text: 'The year is done' }),
       h('p', { class: 'seq', text: `You read ${read} of ${READING_DAYS} readings in ${day.year}.` }));
     append(main, h('p', null, `The plan starts again ${longDate(planStart(day.year + 1))}.`),
@@ -257,7 +263,7 @@ function renderToday(now, progress, settings, syncState) {
   append(root.querySelector('header'), h('h1', { text: longDate(now) }));
   if (day.status === 'weekend') {
     append(root.querySelector('header'), h('p', { class: 'seq', text: 'Weekend. Catch up or rest.' }));
-    const behind = catchUpIds(progress, now);
+    const behind = settings.hideBehind ? [] : catchUpIds(progress, now, tracksFor(settings));
     if (behind.length) {
       append(main, h('h2', { text: 'To catch up' }));
       let shown = 0;
@@ -268,17 +274,17 @@ function renderToday(now, progress, settings, syncState) {
         append(main, h('h3', { class: 'day-head', text: longDate(dateFor(g.year, g.week, g.weekday)) }),
           readingList(items, progress, partners, settings));
       });
-      if (behind.length > 6) append(main, h('p', { class: 'catch' }, h('a', { href: '#/catchup', text: `See all ${catchUpDays(progress, now)}` })));
+      if (behind.length > 6) append(main, h('p', { class: 'catch' }, h('a', { href: '#/catchup', text: `See all ${catchUpDays(progress, now, tracksFor(settings))}` })));
     }
-    append(main, h('h2', { text: `Monday, ${shortDate(dateFor(day.year, day.nextWeek, 1))}` }), previewList(day.year, day.nextWeek, 1));
-    append(main, weekGrid(day.year, day.week, now, progress, partners));
+    append(main, h('h2', { text: `Monday, ${shortDate(dateFor(day.year, day.nextWeek, 1))}` }), previewList(day.year, day.nextWeek, 1, settings));
+    append(main, weekGrid(day.year, day.week, now, progress, partners, settings));
     return root;
   }
 
   append(root.querySelector('header'), h('p', { class: 'seq', text: `Week ${day.week}, day ${day.weekday}` }));
-  append(main, readingList(readingsFor(day.year, day.week, day.weekday), progress, partners, settings),
-    weekGrid(day.year, day.week, now, progress, partners),
-    catchUpLine(progress, now));
+  append(main, readingList(visible(readingsFor(day.year, day.week, day.weekday), settings), progress, partners, settings),
+    weekGrid(day.year, day.week, now, progress, partners, settings),
+    catchUpLine(progress, now, settings));
   return root;
 }
 
@@ -298,23 +304,23 @@ function renderWeek(year, week, now, progress, settings, syncState) {
   for (let d = 1; d <= 5; d++) {
     const isToday = today.status === 'reading' && today.year === year && today.week === week && today.weekday === d;
     append(main, h('h2', { text: longDate(dateFor(year, week, d)) + (isToday ? ', today' : '') }),
-      readingList(readingsFor(year, week, d), progress, partners, settings));
+      readingList(visible(readingsFor(year, week, d), settings), progress, partners, settings));
   }
   append(root, main);
   return root;
 }
 
-function renderPlan(year, now, progress) {
+function renderPlan(year, now, progress, settings = {}) {
   const day = planDayForDate(now);
   const openWeek = day.year !== year ? 0 : (day.status === 'before' ? 1 : day.week || 0);
   const main = h('main');
   for (let w = 1; w <= WEEKS; w++) {
     const days = [1, 2, 3, 4, 5].map(d => h('li', null,
       h('span', { class: 'muted', text: dayName(dateFor(year, w, d)) }),
-      readingsFor(year, w, d).map(r => h('span', { class: `${trackClass(r.track)}${isDone(progress, r.id) ? ' done' : ''}`, text: displayRef(r.ref) }))));
+      visible(readingsFor(year, w, d), settings).map(r => h('span', { class: `${trackClass(r.track)}${isDone(progress, r.id) ? ' done' : ''}`, text: displayRef(r.ref) }))));
     append(main, h('details', { open: w === openWeek },
       h('summary', null, h('b', { text: `Week ${w}` }), h('span', { class: 'muted', text: `${shortDate(dateFor(year, w, 1))} to ${shortDate(dateFor(year, w, 5))}` }),
-        h('span', { class: 'count', text: `${weekDaysDone(progress, year, w)} of 5` })),
+        h('span', { class: 'count', text: `${weekDaysDone(progress, year, w, tracksFor(settings))} of 5` })),
       h('ul', { class: 'plan-days' }, days),
       h('a', { class: 'open-week', href: `#/week/${year}/${w}`, text: `Open week ${w}` })));
   }
@@ -331,7 +337,7 @@ function renderPlan(year, now, progress) {
 }
 
 function renderCatchUp(now, progress, settings, syncState) {
-  const ids = catchUpIds(progress, now);
+  const ids = catchUpIds(progress, now, tracksFor(settings));
   const partners = mutualPartners(syncState);
   const main = h('main');
   if (!ids.length) {
@@ -349,7 +355,7 @@ function renderCatchUp(now, progress, settings, syncState) {
   }
   return h('div', { class: 'screen' },
     h('header', null, topBar(syncState), h('h1', { text: 'Catch up' }),
-      ids.length ? h('p', { class: 'seq', text: `${plural(catchUpDays(progress, now), 'reading')} from earlier days` }) : null),
+      ids.length ? h('p', { class: 'seq', text: `${plural(catchUpDays(progress, now, tracksFor(settings)), 'reading')} from earlier days` }) : null),
     main);
 }
 
@@ -405,8 +411,8 @@ function accountSection(account, syncState) {
 }
 
 // Marks every unread reading before today (this plan year) as read; returns how many.
-function catchMeUp(now) {
-  const ids = catchUpIds(getProgress(), now);
+function catchMeUp(now, tracks = null) {
+  const ids = catchUpIds(getProgress(), now, tracks);
   if (ids.length) {
     setManyDone(ids, true);
     noteLocalChange();
@@ -440,6 +446,10 @@ function renderAccount(settings, account, syncState, behind = 0, confirming = fa
     h('main', { class: 'account' },
       syncEnabled() ? accountSection(account, syncState) : null,
       h('section', null, h('h2', { text: 'Settings' }),
+        h('label', { class: 'check-field' }, h('input', { type: 'checkbox', name: 'hideBehind', checked: settings.hideBehind }),
+          h('span', { text: 'Hide how far behind I am' })),
+        h('label', { class: 'check-field' }, h('input', { type: 'checkbox', name: 'ntOnly', checked: settings.ntOnly }),
+          h('span', { text: 'New Testament only' })),
         h('label', { class: 'check-field' }, h('input', { type: 'checkbox', name: 'showLinks', checked: settings.showLinks }),
           h('span', { text: 'Show links to read online' }))),
       catchMeUpSection(behind, confirming),
@@ -514,7 +524,7 @@ function renderAbout() {
           h('li', null, h('b', { text: 'Tuesday and Thursday: ' }), 'a short passage from Proverbs, about nine verses. You read the whole book over the year, a little at a time.')))));
 }
 
-function renderPrint(year, now) {
+function renderPrint(year, now, settings = {}) {
   const thisYear = currentYear(now);
   const years = [thisYear, thisYear + 1];
   if (!years.includes(year)) years.push(year);
@@ -524,7 +534,7 @@ function renderPrint(year, now) {
       h('h2', null, `Week ${w} `, h('span', { class: 'muted', text: `${shortDate(dateFor(year, w, 1))} to ${shortDate(dateFor(year, w, 5))}` })),
       h('ol', { class: 'print-days' }, [1, 2, 3, 4, 5].map(d => h('li', { class: 'print-day' },
         h('span', { class: 'print-dow', text: dayName(dateFor(year, w, d)) }),
-        readingsFor(year, w, d).map(r => h('span', { class: 'print-ref' }, h('i', { class: 'box' }), displayRef(r.ref))))))));
+        visible(readingsFor(year, w, d), settings).map(r => h('span', { class: 'print-ref' }, h('i', { class: 'box' }), displayRef(r.ref))))))));
   }
   return h('div', { class: 'screen print-screen' },
     h('header', null,
@@ -533,7 +543,7 @@ function renderPrint(year, now) {
       h('nav', { class: 'years print-actions', 'aria-label': 'Which year' }, years.map(y =>
         h('a', { href: `#/print/${y}`, 'aria-current': y === year ? 'page' : null, text: String(y) }))),
       h('h1', { text: `M260 ${year} Bible Reading Plan` }),
-      h('p', { class: 'seq', text: `${READING_DAYS} readings, Monday to Friday, ${planRange(year)}. New Testament, Old Testament, and a Psalm or Proverbs each day.` })),
+      h('p', { class: 'seq', text: `${READING_DAYS} readings, Monday to Friday, ${planRange(year)}. ${settings.ntOnly ? 'One New Testament chapter each day.' : 'New Testament, Old Testament, and a Psalm or Proverbs each day.'}` })),
     h('main', { class: 'print-weeks' }, weeks));
 }
 
@@ -603,11 +613,11 @@ function render() {
   const screens = {
     today: () => renderToday(now, progress, settings, state),
     week: () => renderWeek(route.year || currentYear(now), route.week, now, progress, settings, state),
-    plan: () => renderPlan(route.year || currentYear(now), now, progress),
+    plan: () => renderPlan(route.year || currentYear(now), now, progress, settings),
     catchup: () => renderCatchUp(now, progress, settings, state),
-    account: () => renderAccount(settings, getAccount(), state, catchUpDays(progress, now), confirmingCatchUp),
+    account: () => renderAccount(settings, getAccount(), state, catchUpDays(progress, now, tracksFor(settings)), confirmingCatchUp),
     extras: () => renderExtras(now),
-    print: () => renderPrint(route.year || currentYear(now), now),
+    print: () => renderPrint(route.year || currentYear(now), now, settings),
     about: () => renderAbout(),
   };
   const focusedId = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.id : null;
@@ -686,7 +696,7 @@ function boot() {
     if (e.target.closest('.print-now')) return window.print();
     if (e.target.closest('.catch-me-up')) { confirmingCatchUp = true; return render(); }
     if (e.target.closest('.catch-me-up-no')) { confirmingCatchUp = false; return render(); }
-    if (e.target.closest('.catch-me-up-yes')) { confirmingCatchUp = false; catchMeUp(appNow(location.search)); return render(); }
+    if (e.target.closest('.catch-me-up-yes')) { confirmingCatchUp = false; catchMeUp(appNow(location.search), tracksFor(getSettings())); return render(); }
     if (e.target.closest('.install-dismiss')) { localStorage.setItem('br27.installDismissed', '1'); return render(); }
     if (e.target.closest('button.install') && deferredInstall) {
       const ev = deferredInstall;
@@ -696,7 +706,7 @@ function boot() {
     return undefined;
   });
   app.addEventListener('change', e => {
-    if (e.target.name === 'showLinks') saveSettings({ showLinks: e.target.checked });
+    if (['showLinks', 'hideBehind', 'ntOnly'].includes(e.target.name)) saveSettings({ [e.target.name]: e.target.checked });
     else if (e.target.classList.contains('partner-switch')) selectedPartner = Number(e.target.value);
     else return;
     render();

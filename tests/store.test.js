@@ -49,14 +49,16 @@ test('store: corrupt storage', () => withCleanStore(() => {
 }));
 
 test('store: settings defaults', () => withCleanStore(() => {
-  assertEqual(getSettings(), { showLinks: true });
+  assertEqual(getSettings(), { showLinks: true, hideBehind: false, ntOnly: false });
   saveSettings({ showLinks: false });
-  assertEqual(getSettings(), { showLinks: false });
+  assertEqual(getSettings(), { showLinks: false, hideBehind: false, ntOnly: false });
+  saveSettings({ hideBehind: true, ntOnly: true });
+  assertEqual(getSettings(), { showLinks: false, hideBehind: true, ntOnly: true });
 }));
 
 test('store: an old translation setting is ignored', () => withCleanStore(() => {
   localStorage.setItem('br27.settings', '{"translation":"kjv","showLinks":true}');
-  assertEqual(getSettings(), { showLinks: true });
+  assertEqual(getSettings(), { showLinks: true, hideBehind: false, ntOnly: false });
 }));
 
 test('store: account', () => withCleanStore(() => {
@@ -111,4 +113,14 @@ test('store: catchUpDays counts days with anything unread', () => {
   assertEqual(catchUpDays({}, wed), 2);
   assertEqual(catchUpDays({ '2027-w01d1-nt': { done: true, t: 1 }, '2027-w01d1-ot': { done: true, t: 1 }, '2027-w01d1-ps': { done: true, t: 1 } }, wed), 1);
   assertEqual(catchUpDays({ '2027-w01d1-nt': { done: true, t: 1 } }, wed), 2, 'a part-read day still counts');
+});
+
+test('store: catch-up and day counts can look at the New Testament only', () => {
+  const wed = new Date(2027, 0, 6, 9);
+  const ntDone = { '2027-w01d1-nt': { done: true, t: 1 }, '2027-w01d2-nt': { done: true, t: 1 } };
+  assertEqual(catchUpIds({}, wed, ['nt']), ['2027-w01d1-nt', '2027-w01d2-nt']);
+  assertEqual(catchUpDays(ntDone, wed, ['nt']), 0);
+  assertEqual(catchUpDays(ntDone, wed), 2, 'the full plan still counts the other readings');
+  assertEqual(weekDaysDone(ntDone, 2027, 1, ['nt']), 2);
+  assertEqual(weekDaysDone(ntDone, 2027, 1), 0);
 });

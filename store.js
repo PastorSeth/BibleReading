@@ -15,7 +15,7 @@ const KEYS = {
   settings: 'br27.settings',
 };
 
-const DEFAULT_SETTINGS = { showLinks: true };
+const DEFAULT_SETTINGS = { showLinks: true, hideBehind: false, ntOnly: false };
 
 function readJSON(key, fallback) {
   try {
@@ -106,7 +106,9 @@ function clearPending(sent) {
 function getSettings() {
   const s = readJSON(KEYS.settings, {});
   const stored = isPlainObject(s) ? s : {};
-  return { showLinks: typeof stored.showLinks === 'boolean' ? stored.showLinks : DEFAULT_SETTINGS.showLinks };
+  const out = {};
+  Object.keys(DEFAULT_SETTINGS).forEach(k => { out[k] = typeof stored[k] === 'boolean' ? stored[k] : DEFAULT_SETTINGS[k]; });
+  return out;
 }
 
 function saveSettings(partial) {
@@ -135,18 +137,25 @@ function isDone(progress, id) {
   return !!(progress[id] && progress[id].done);
 }
 
-function catchUpIds(progress, today) {
-  return allItemIdsBefore(today).filter(id => !isDone(progress, id));
+// tracks: null for the whole plan, or a list like ['nt'] ("New Testament only").
+function inTracks(id, tracks) {
+  return !tracks || tracks.includes(id.slice(-2));
+}
+
+function catchUpIds(progress, today, tracks = null) {
+  return allItemIdsBefore(today).filter(id => inTracks(id, tracks) && !isDone(progress, id));
 }
 
 // How many plan days before today still have an unread passage (a "reading" = one day's set).
-function catchUpDays(progress, today) {
-  return new Set(catchUpIds(progress, today).map(id => id.replace(/-(nt|ot|ps|pr)$/, ''))).size;
+function catchUpDays(progress, today, tracks = null) {
+  return new Set(catchUpIds(progress, today, tracks).map(id => id.replace(/-(nt|ot|ps|pr)$/, ''))).size;
 }
 
 // Days in a week with every passage read (a "reading" = one day's set).
-function weekDaysDone(progress, year, week) {
+function weekDaysDone(progress, year, week, tracks = null) {
   let n = 0;
-  for (let d = 1; d <= 5; d++) if (readingsFor(year, week, d).every(r => isDone(progress, r.id))) n++;
+  for (let d = 1; d <= 5; d++) {
+    if (readingsFor(year, week, d).filter(r => inTracks(r.id, tracks)).every(r => isDone(progress, r.id))) n++;
+  }
   return n;
 }

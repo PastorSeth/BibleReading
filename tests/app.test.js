@@ -382,3 +382,47 @@ test('app: a plan that ends next January says which year', () => {
   assertIncludes(renderPrint(2026, new Date(2026, 5, 1)).querySelector('.seq').textContent, 'January 5 to January 1, 2027');
   assertIncludes(renderPlan(2027, new Date(2027, 5, 1), {}).querySelector('.seq').textContent, 'January 4 to December 31.');
 });
+
+const NT_ONLY = { showLinks: true, ntOnly: true };
+const HIDE = { showLinks: true, hideBehind: true };
+
+test('settings: hide how far behind removes the catch-up line and weekend list', () => {
+  const wed = renderToday(new Date(2027, 0, 6, 9), {}, HIDE, NO_SYNC).textContent;
+  assert(!/catch up/i.test(wed), 'no catch-up line');
+  const sat = renderToday(new Date(2027, 0, 16), {}, HIDE, NO_SYNC);
+  assert(!sat.textContent.includes('To catch up'), 'no weekend catch-up list');
+  assertEqual(sat.querySelectorAll('main .readings button.tick').length, 0);
+});
+
+test('settings: New Testament only on Today and Week', () => {
+  const el = renderToday(new Date(2027, 0, 4, 8), {}, NT_ONLY, NO_SYNC);
+  assertEqual([...el.querySelectorAll('.ref')].map(r => r.textContent), ['Luke 1']);
+  assertEqual([...el.querySelectorAll('.grid .label')].map(l => l.textContent), ['New Test.']);
+  assertEqual(renderWeek(2027, 1, new Date(2027, 0, 4), {}, NT_ONLY, NO_SYNC).querySelectorAll('button.tick').length, 5);
+  const ntDone = done('2027-w01d1-nt', '2027-w01d2-nt');
+  assert(!/catch up/.test(renderToday(new Date(2027, 0, 6, 9), ntDone, NT_ONLY, NO_SYNC).textContent), 'caught up on the NT');
+});
+
+test('settings: New Testament only on Plan, Catch up, print and Catch me up', () => {
+  const plan = renderPlan(2027, new Date(2027, 0, 13), done('2027-w01d1-nt'), NT_ONLY);
+  assert(!plan.textContent.includes('Genesis'), 'no Old Testament on the plan');
+  assertIncludes(plan.querySelector('details').textContent, '1 of 5');
+  assertEqual(renderCatchUp(new Date(2027, 0, 6, 9), {}, NT_ONLY, NO_SYNC).querySelectorAll('button.tick').length, 2);
+  const print = renderPrint(2027, new Date(2027, 0, 6), NT_ONLY);
+  assertEqual(print.querySelectorAll('.print-day .box').length, 260);
+  assert(!print.textContent.includes('Genesis'), 'no Old Testament on paper');
+  assertIncludes(print.querySelector('.seq').textContent, 'One New Testament chapter each day.');
+  assertIncludes(renderPrint(2027, new Date(2027, 0, 6)).querySelector('.seq').textContent, 'New Testament, Old Testament, and a Psalm or Proverbs each day.');
+  withCleanStore(() => {
+    assertEqual(catchMeUp(new Date(2027, 0, 6, 9), ['nt']), 2);
+    assertEqual(Object.keys(getProgress()).sort(), ['2027-w01d1-nt', '2027-w01d2-nt']);
+  });
+});
+
+test('settings: the account page has both switches', () => withEndpoint('', '', () => {
+  const el = renderAccount({ showLinks: true, hideBehind: true, ntOnly: false }, null, NO_SYNC);
+  assertEqual(el.querySelector('input[name="hideBehind"]').checked, true);
+  assertEqual(el.querySelector('input[name="ntOnly"]').checked, false);
+  assertIncludes(el.textContent, 'Hide how far behind I am');
+  assertIncludes(el.textContent, 'New Testament only');
+}));
