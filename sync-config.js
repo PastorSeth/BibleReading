@@ -16,5 +16,5 @@
    After changing this file, bump CACHE_NAME in service-worker.js.
    ============================================================ */
 
-let SYNC_ENDPOINT = '';
+let SYNC_ENDPOINT = 'https://script.google.com/macros/s/AKfycbxUH_et_Kbaz4ife73mPHAoTWw1EyJ05RDALMQJ6Ke8cKq_1QDBaQL9jIojeveF2a4Zmg/exec';
 let HELP_EMAIL = '';
