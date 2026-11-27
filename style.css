@@ -183,8 +183,45 @@ details[open] summary .count { color: var(--ink); font-weight: 700; }
 .install-note { margin: 16px 20px 0; padding: 14px 16px; border: 2px solid var(--ink); font-size: 16px; }
 .install-note .actions { margin-top: 10px; }
 
+/* ---------- Extras ---------- */
+.extras section { margin-top: 4px; }
+.extras p { margin-bottom: 10px; }
+.about-list { padding-left: 20px; margin: 0 0 10px; }
+.about-list li { margin-bottom: 8px; }
+a.btn { display: inline-block; text-decoration: none; }
+.share-note:empty { display: none; }
+.share-note { margin-top: 10px; overflow-wrap: anywhere; }
+
+/* ---------- Printable plan ---------- */
+.print-actions a { font-size: 16px; }
+.print-week { break-inside: avoid; page-break-inside: avoid; border-top: 2px solid var(--ink); margin-top: 18px; padding-top: 6px; }
+.print-week h2 { margin: 0 0 6px; font-size: 17px; }
+.print-week h2 .muted { font-family: var(--face); font-weight: 400; font-size: 14px; margin-left: 6px; }
+.print-days { list-style: none; padding: 0; margin: 0; }
+.print-day { display: grid; grid-template-columns: 38px 1fr 1fr 1.2fr; gap: 6px; padding: 3px 0; font-size: 15px; }
+.print-dow { color: var(--ink-2); }
+.print-ref { display: flex; align-items: flex-start; gap: 5px; }
+.print-ref .box { flex: none; width: 10px; height: 10px; border: 1.5px solid var(--ink); margin-top: 4px; }
+
+@media print {
+  @page { margin: 12mm; }
+  html, body, .app { background: #fff !important; }
+  .app { max-width: none; border: 0 !important; }
+  nav.tabs, .print-actions, .preview-note, .install-note { display: none !important; }
+  .print-screen header { padding: 0; }
+  .print-screen h1 { margin-top: 0; font-size: 20pt; }
+  .print-screen .seq { font-size: 10pt; }
+  .print-weeks { columns: 3; column-gap: 8mm; padding: 0; }
+  .print-week { margin-top: 0; margin-bottom: 4mm; border-top-width: 1.5px; }
+  .print-week h2 { font-size: 10.5pt; }
+  .print-week h2 .muted { font-size: 8pt; }
+  .print-day { grid-template-columns: 7mm 1fr; font-size: 8pt; padding: 0.6mm 0; gap: 0 2mm; }
+  .print-day .print-ref { grid-column: 2; }
+  .print-ref .box { width: 2.6mm; height: 2.6mm; margin-top: 0.6mm; border-width: 1px; }
+}
+
 /* ---------- Tab bar ---------- */
-nav.tabs { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 2px solid var(--ink); padding: 8px 0 max(14px, env(safe-area-inset-bottom)); position: sticky; bottom: 0; background: var(--paper); }
+nav.tabs { display: grid; grid-template-columns: repeat(5, 1fr); border-top: 2px solid var(--ink); padding: 8px 0 max(14px, env(safe-area-inset-bottom)); position: sticky; bottom: 0; background: var(--paper); }
 nav.tabs a { display: grid; justify-items: center; gap: 3px; font-size: 13px; color: var(--ink-2); text-decoration: none; padding: 2px 0 4px; }
 nav.tabs a.on { color: var(--ink); font-weight: 700; }
 nav.tabs svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; }

@@ -24,6 +24,9 @@ test('app: parseRoute', () => {
   assertEqual(parseRoute('#/plan/1999'), { name: 'plan', year: 2026 });
   assertEqual(parseRoute('#/catchup'), { name: 'catchup' });
   assertEqual(parseRoute('#/account'), { name: 'account' });
+  assertEqual(parseRoute('#/extras'), { name: 'extras' });
+  assertEqual(parseRoute('#/print'), { name: 'print' });
+  assertEqual(parseRoute('#/print/2028'), { name: 'print', year: 2028 });
   assertEqual(parseRoute('#/nope'), { name: 'today' });
 });
 
@@ -300,3 +303,58 @@ test('app: catch me up counts days', () => withEndpoint('', '', () => {
   assertEqual(catchUpDays({}, new Date(2027, 0, 6, 9)), 2);
   assertEqual(renderAccount(SETTINGS, null, sync, 2).querySelector('button.catch-me-up').textContent, 'Mark 2 readings as read');
 }));
+
+test('app: tab bar is Extras, Week, Today, Plan, Account', () => {
+  const nav = tabBar({ name: 'today' }, new Date(2027, 0, 6));
+  assertEqual([...nav.querySelectorAll('a')].map(a => a.textContent), ['Extras', 'Week', 'Today', 'Plan', 'Account']);
+  assertEqual(nav.querySelector('a.on').textContent, 'Today');
+  assertEqual(nav.querySelector('a').getAttribute('href'), '#/extras');
+  assertEqual(tabBar({ name: 'print' }, new Date(2027, 0, 6)).querySelector('a.on').textContent, 'Extras');
+});
+
+test('app: extras page has its three sections', () => {
+  const el = renderExtras(new Date(2027, 0, 6));
+  assertEqual([...el.querySelectorAll('main h2')].map(x => x.textContent),
+    ['About this reading plan', 'Printable plan', 'Share this app with a friend']);
+  assertIncludes(el.textContent, 'Replicate');
+  assertIncludes(el.textContent, 'first Monday of January');
+  assertEqual(el.querySelector('a.open-print').getAttribute('href'), '#/print/2027');
+  assertEqual(el.querySelector('a.open-print-next').getAttribute('href'), '#/print/2028');
+  assertIncludes(el.querySelector('a.open-print-next').textContent, '2028');
+  assert(el.querySelector('button.share-app'), 'share button');
+});
+
+test('app: printable plan lists every day of the year with tick boxes', () => {
+  const el = renderPrint(2027);
+  assertIncludes(el.querySelector('h1').textContent, '2027');
+  assertEqual(el.querySelectorAll('.print-week').length, 52);
+  assertEqual(el.querySelectorAll('.print-day').length, 260);
+  assertEqual(el.querySelectorAll('.print-day .box').length, 780);
+  assertIncludes(el.querySelector('.print-week').textContent, 'Luke 1');
+  assertIncludes(el.querySelector('.print-week').textContent, 'January 4');
+  assert(el.querySelector('button.print-now'), 'print button');
+});
+
+test('app: the shared link is the app address without previews or screens', () => {
+  assertEqual(appShareUrl({ origin: 'https://pastorseth.github.io', pathname: '/BibleReading/' }), 'https://pastorseth.github.io/BibleReading/');
+  assertEqual(appShareUrl({ origin: 'https://pastorseth.github.io', pathname: '/BibleReading/index.html' }), 'https://pastorseth.github.io/BibleReading/');
+});
+
+test('app: share falls back to copying the link and says so', async () => {
+  const el = renderExtras(new Date(2027, 0, 6));
+  document.body.appendChild(el);
+  try {
+    let copied = null;
+    const nav = { clipboard: { writeText: async t => { copied = t; } } };
+    await shareApp(el.querySelector('.share-app'), nav, { origin: 'https://example.test', pathname: '/BibleReading/' });
+    assertEqual(copied, 'https://example.test/BibleReading/');
+    assertIncludes(el.querySelector('.share-note').textContent, 'Link copied');
+  } finally { el.remove(); }
+});
+
+test('app: share uses the phone share sheet when there is one', async () => {
+  const el = renderExtras(new Date(2027, 0, 6));
+  let shared = null;
+  await shareApp(el.querySelector('.share-app'), { share: async d => { shared = d; } }, { origin: 'https://example.test', pathname: '/BibleReading/' });
+  assertEqual(shared.url, 'https://example.test/BibleReading/');
+});

@@ -17,6 +17,7 @@ const ICONS = {
   week: ['0 0 24 24', '<path d="M4 6h16M4 12h16M4 18h16"/>'],
   plan: ['0 0 24 24', '<rect x="4" y="4" width="6" height="6"/><rect x="14" y="4" width="6" height="6"/><rect x="4" y="14" width="6" height="6"/><rect x="14" y="14" width="6" height="6"/>'],
   account: ['0 0 24 24', '<circle cx="12" cy="9" r="4"/><path d="M5 20c1.5-3.5 4-5 7-5s5.5 1.5 7 5"/>'],
+  extras: ['0 0 24 24', '<circle cx="12" cy="12" r="9"/><circle cx="8" cy="12" r="0.9"/><circle cx="12" cy="12" r="0.9"/><circle cx="16" cy="12" r="0.9"/>'],
   prev: ['0 0 24 24', '<path d="M15 5l-7 7 7 7"/>'],
   next: ['0 0 24 24', '<path d="M9 5l7 7-7 7"/>'],
 };
@@ -91,7 +92,9 @@ function parseRoute(hash) {
   if (week) return { name: 'week', week: clampWeek(week[1]) };
   const planYear = path.match(/^\/plan\/(\d{4})$/);
   if (planYear) return { name: 'plan', year: Math.max(FIRST_YEAR, Number(planYear[1])) };
-  if (['/plan', '/catchup', '/account'].includes(path)) return { name: path.slice(1) };
+  const printYear = path.match(/^\/print\/(\d{4})$/);
+  if (printYear) return { name: 'print', year: Math.max(FIRST_YEAR, Number(printYear[1])) };
+  if (['/plan', '/catchup', '/account', '/extras', '/print'].includes(path)) return { name: path.slice(1) };
   return { name: 'today' };
 }
 
@@ -437,9 +440,74 @@ function renderAccount(settings, account, syncState, behind = 0, confirming = fa
       standalone ? null : h('p', { class: 'muted tip', text: 'Tip: add this app to your home screen. Your checkmarks are kept safest there.' })));
 }
 
+/* ---------- Extras ---------- */
+
+// The app's own address to share: no ?date= preview, no #/screen.
+function appShareUrl(loc) {
+  return loc.origin + loc.pathname.replace(/index\.html$/, '');
+}
+
+async function shareApp(button, nav = navigator, loc = location) {
+  const url = appShareUrl(loc);
+  const note = button.closest('section').querySelector('.share-note');
+  try {
+    if (nav.share) {
+      await nav.share({ title: 'Bible Reading', text: 'A daily Bible reading plan I use. Have a look:', url });
+      return;
+    }
+    await nav.clipboard.writeText(url);
+    note.textContent = 'Link copied. Paste it into a message to a friend.';
+  } catch (err) {
+    if (err && err.name === 'AbortError') return; // they closed the share sheet
+    note.textContent = `Copy this link: ${url}`;
+  }
+}
+
+function renderExtras(now) {
+  const year = currentYear(now);
+  return h('div', { class: 'screen' },
+    h('header', null, h('div', { class: 'bar' }, h('span', { text: 'Bible Reading' })), h('h1', { text: 'Extras' })),
+    h('main', { class: 'extras' },
+      h('section', null, h('h2', { text: 'About this reading plan' }),
+        h('p', { text: 'One year, five days a week. Each weekday has three readings to read in your own Bible:' }),
+        h('ul', { class: 'about-list' },
+          h('li', null, h('b', { text: 'New Testament: ' }), 'one chapter a day, from the Foundations New Testament plan by Replicate (replicate.org). All 260 chapters of the New Testament in a year.'),
+          h('li', null, h('b', { text: 'Old Testament: ' }), 'one reading a day from the Foundations (F260) Old Testament readings, from Genesis to Malachi.'),
+          h('li', null, h('b', { text: 'Psalms and Proverbs: ' }), 'a Psalm on Monday, Wednesday and Friday (all 150, with Psalm 119 in seven parts), and a short passage of Proverbs on Tuesday and Thursday.')),
+        h('p', { text: 'Weekends are left open for catching up or resting. The plan starts again on the first Monday of January each year, and each year keeps its own checkmarks.' })),
+      h('section', null, h('h2', { text: 'Printable plan' }),
+        h('p', { text: `The whole ${year} plan on paper, with a box to tick for every reading. Keep it in your Bible.` }),
+        h('div', { class: 'actions' },
+          h('a', { class: 'btn open-print', href: `#/print/${year}`, text: `Open the ${year} plan` }),
+          h('a', { class: 'open-print-next', href: `#/print/${year + 1}`, text: `Next year's (${year + 1})` }))),
+      h('section', null, h('h2', { text: 'Share this app with a friend' }),
+        h('p', { text: "Send a friend the link. Accounts are optional, and you can add each other as reading partners to see each other's progress." }),
+        h('div', { class: 'actions' }, h('button', { type: 'button', class: 'btn primary share-app', text: 'Share the app' })),
+        h('p', { class: 'muted share-note', role: 'status' }))));
+}
+
+function renderPrint(year) {
+  const weeks = [];
+  for (let w = 1; w <= WEEKS; w++) {
+    weeks.push(h('section', { class: 'print-week' },
+      h('h2', null, `Week ${w} `, h('span', { class: 'muted', text: `${shortDate(dateFor(year, w, 1))} to ${shortDate(dateFor(year, w, 5))}` })),
+      h('ol', { class: 'print-days' }, [1, 2, 3, 4, 5].map(d => h('li', { class: 'print-day' },
+        h('span', { class: 'print-dow', text: dayName(dateFor(year, w, d)) }),
+        readingsFor(year, w, d).map(r => h('span', { class: 'print-ref' }, h('i', { class: 'box' }), displayRef(r.ref))))))));
+  }
+  return h('div', { class: 'screen print-screen' },
+    h('header', null,
+      h('div', { class: 'bar print-actions' }, h('a', { href: '#/extras', text: 'Back to Extras' }),
+        h('button', { type: 'button', class: 'btn primary print-now', text: 'Print' })),
+      h('h1', { text: `${year} Bible Reading Plan` }),
+      h('p', { class: 'seq', text: `${READING_DAYS} readings, Monday to Friday, ${shortDate(planStart(year))} to ${shortDate(dateFor(year, WEEKS, 5))}. New Testament, Old Testament, and a Psalm or Proverbs each day.` })),
+    h('main', { class: 'print-weeks' }, weeks));
+}
+
 function tabBar(route, now) {
-  const tabs = [['today', '#/', 'Today'], ['week', `#/week/${currentYear(now)}/${currentWeek(now)}`, 'Week'], ['plan', '#/plan', 'Plan'], ['account', '#/account', 'Account']];
-  const active = route.name === 'catchup' ? 'today' : route.name;
+  const tabs = [['extras', '#/extras', 'Extras'], ['week', `#/week/${currentYear(now)}/${currentWeek(now)}`, 'Week'],
+    ['today', '#/', 'Today'], ['plan', '#/plan', 'Plan'], ['account', '#/account', 'Account']];
+  const active = { catchup: 'today', print: 'extras' }[route.name] || route.name;
   return h('nav', { class: 'tabs', 'aria-label': 'Sections' }, tabs.map(([name, href, label]) =>
     h('a', { href, class: name === active ? 'on' : null, 'aria-current': name === active ? 'page' : null }, icon(name), label)));
 }
@@ -505,6 +573,8 @@ function render() {
     plan: () => renderPlan(route.year || currentYear(now), now, progress),
     catchup: () => renderCatchUp(now, progress, settings, state),
     account: () => renderAccount(settings, getAccount(), state, catchUpDays(progress, now), confirmingCatchUp),
+    extras: () => renderExtras(now),
+    print: () => renderPrint(route.year || currentYear(now)),
   };
   const focusedId = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.id : null;
   const previewing = /[?&]date=/.test(location.search);
@@ -575,6 +645,9 @@ function boot() {
     const addBack = e.target.closest('[data-addback]');
     if (addBack) return addPartner(addBack.dataset.addback).then(render);
     if (e.target.closest('.signout')) return signOut().then(render);
+    const share = e.target.closest('.share-app');
+    if (share) return shareApp(share);
+    if (e.target.closest('.print-now')) return window.print();
     if (e.target.closest('.catch-me-up')) { confirmingCatchUp = true; return render(); }
     if (e.target.closest('.catch-me-up-no')) { confirmingCatchUp = false; return render(); }
     if (e.target.closest('.catch-me-up-yes')) { confirmingCatchUp = false; catchMeUp(appNow(location.search)); return render(); }
