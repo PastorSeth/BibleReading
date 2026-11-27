@@ -15,10 +15,17 @@
   font-weight: 700; font-style: normal; font-display: swap;
 }
 
+@font-face {
+  font-family: 'Vollkorn';
+  src: url('fonts/Vollkorn-Bold.woff2') format('woff2');
+  font-weight: 700; font-style: normal; font-display: swap;
+}
+
 :root {
   --paper: #E7E7E2; --ink: #1E1F1F; --ink-2: #474A49; --rule: #B5B6B0; --faint: #CFD0CA; --field: #F1F1ED;
   --nt: #3F6E6C; --ot: #95533F; --wis: #85703A;
   --face: 'Atkinson Hyperlegible', 'Avenir Next', 'Segoe UI', Roboto, sans-serif;
+  --display: 'Vollkorn', Georgia, 'Times New Roman', serif; /* the date, readings and headings */
   color-scheme: light;
   accent-color: var(--ink);
 }
@@ -38,19 +45,22 @@ header { padding: max(16px, env(safe-area-inset-top)) 20px 0; }
 .bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 14px; color: var(--ink-2); min-height: 22px; }
 .sync { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); }
 .sync svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.6; }
-h1 { font-size: 30px; font-weight: 700; letter-spacing: -.01em; line-height: 1.1; margin-top: 22px; text-wrap: balance; }
+h1 { font-family: var(--display); font-size: 32px; font-weight: 700; letter-spacing: -.005em; line-height: 1.1; margin-top: 22px; text-wrap: balance; }
 .seq { font-size: 16px; color: var(--ink-2); margin-top: 4px; }
 .centered { text-align: center; }
 main { flex: 1; padding: 0 20px 28px; }
-h2 { font-size: 17px; font-weight: 700; margin: 28px 0 10px; }
+h2 { font-family: var(--display); font-size: 19px; font-weight: 700; margin: 28px 0 10px; }
 h3 { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
+
+/* Vollkorn's default book-style numbers make "Psalm 11" look like "Psalm II". */
+h1, h2, .ref, .preview li, summary b, .empty { font-variant-numeric: lining-nums; }
 
 /* ---------- Reading rows ---------- */
 .readings { list-style: none; padding: 0; border-top: 2px solid var(--ink); }
 main > .readings:first-child { margin-top: 18px; }
 .readings li { display: flex; align-items: center; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--rule); }
 .what { flex: 1; min-width: 0; }
-.ref { font-size: 26px; font-weight: 700; letter-spacing: -.01em; line-height: 1.1; overflow-wrap: anywhere; }
+.ref { font-family: var(--display); font-size: 29px; font-weight: 700; letter-spacing: -.005em; line-height: 1.1; overflow-wrap: anywhere; }
 .track { font-size: 14px; color: var(--ink-2); margin-top: 4px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; }
 .read-online { display: inline-flex; padding: 6px; margin: -6px -2px; color: var(--ink-2); }
 .read-online svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.6; }
@@ -104,14 +114,14 @@ main > .readings:first-child { margin-top: 18px; }
 .week-nav a { width: 44px; height: 44px; display: grid; place-items: center; }
 .week-nav svg { width: 24px; height: 24px; fill: none; stroke: var(--ink); stroke-width: 2; }
 .preview { list-style: none; padding: 0; border-top: 2px solid var(--ink); }
-.preview li { display: flex; align-items: baseline; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--rule); font-size: 20px; font-weight: 700; }
+.preview li { display: flex; align-items: baseline; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--rule); font-family: var(--display); font-size: 21px; font-weight: 700; }
 .preview li i { width: 10px; height: 10px; flex: none; align-self: center; }
-.preview li .muted { font-size: 14px; font-weight: 400; margin-left: auto; }
+.preview li .muted { font-family: var(--face); font-size: 14px; font-weight: 400; margin-left: auto; }
 details { border-bottom: 1px solid var(--rule); }
 main > details:first-child { margin-top: 18px; border-top: 2px solid var(--ink); }
 summary { display: flex; gap: 10px; align-items: baseline; padding: 14px 0; cursor: pointer; list-style: none; }
 summary::-webkit-details-marker { display: none; }
-summary b { font-size: 17px; }
+summary b { font-family: var(--display); font-size: 19px; }
 summary .muted { font-size: 14px; }
 summary .count { margin-left: auto; font-size: 14px; color: var(--ink-2); white-space: nowrap; }
 details[open] summary .count { color: var(--ink); font-weight: 700; }
@@ -121,7 +131,7 @@ details[open] summary .count { color: var(--ink); font-weight: 700; }
 .plan-days li > span:not(.muted)::before { content: ''; flex: none; width: 9px; height: 9px; border: 1.5px solid var(--rule); }
 .plan-days .done::before { background: var(--c); border-color: var(--c) !important; }
 .open-week { display: inline-block; font-size: 14px; padding: 6px 0 14px; }
-.empty { font-size: 20px; font-weight: 700; margin-top: 28px; }
+.empty { font-family: var(--display); font-size: 22px; font-weight: 700; margin-top: 28px; }
 .day-head { font-size: 15px; font-weight: 400; color: var(--ink-2); margin: 16px 0 6px; }
 
 .years { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }

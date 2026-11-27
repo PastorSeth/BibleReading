@@ -13,20 +13,20 @@ colors:
   wis-dusty-ochre: "#85703A"
 typography:
   display:
-    fontFamily: "Atkinson Hyperlegible, Avenir Next, Segoe UI, Roboto, sans-serif"
-    fontSize: "30px"
+    fontFamily: "Vollkorn, Georgia, Times New Roman, serif"
+    fontSize: "32px"
     fontWeight: 700
     lineHeight: 1.1
-    letterSpacing: "-0.01em"
+    letterSpacing: "-0.005em"
   headline:
-    fontFamily: "Atkinson Hyperlegible, Avenir Next, Segoe UI, Roboto, sans-serif"
-    fontSize: "26px"
+    fontFamily: "Vollkorn, Georgia, Times New Roman, serif"
+    fontSize: "29px"
     fontWeight: 700
     lineHeight: 1.1
-    letterSpacing: "-0.01em"
+    letterSpacing: "-0.005em"
   title:
-    fontFamily: "Atkinson Hyperlegible, Avenir Next, Segoe UI, Roboto, sans-serif"
-    fontSize: "17px"
+    fontFamily: "Vollkorn, Georgia, Times New Roman, serif"
+    fontSize: "19px"
     fontWeight: 700
     lineHeight: 1.4
   body:
@@ -119,7 +119,7 @@ Confirmed rejections: a dark theme (light e-paper only), card stacks, streak fla
 - Square corners everywhere; no radius in the system.
 - Three muted track inks, used as fills for completed readings only.
 - Solid fill is you; halftone pattern is a partner.
-- One typeface, Atkinson Hyperlegible, at 400 and 700.
+- Two typefaces: Vollkorn Bold for the date, readings and headings; Atkinson Hyperlegible (400/700) for everything small.
 - One signature motion: the tick box's ink flash and stepped check.
 
 ## Colors
@@ -152,21 +152,21 @@ An e-paper palette: grey ground, two inks, two rule greys, and three desaturated
 
 ## Typography
 
-**Display Font:** Atkinson Hyperlegible (self-hosted, 400 and 700; falls back to Avenir Next, Segoe UI, Roboto, sans-serif)
-**Body Font:** the same family.
+**Display Font:** Vollkorn Bold (self-hosted, 700 only; falls back to Georgia, Times New Roman, serif). Chosen by Seth on 2026-11-26 over Literata, Bitter and other slab and book serifs.
+**Body Font:** Atkinson Hyperlegible (self-hosted, 400 and 700; falls back to Avenir Next, Segoe UI, Roboto, sans-serif).
 
-**Character:** a plain, sturdy grotesque designed for legibility; at 700 it reads like a printed sheet's bold column heads, at 400 like its small print. One family, two weights, no italics.
+**Character:** Vollkorn is a dark, warm book serif: the big type reads like a well-printed Bible, without ornament. Atkinson is a plain, sturdy grotesque designed for legibility; it carries every label, button, tab and count so small text stays crisp. No italics. Vollkorn always uses standard (lining) numbers: its default book-style 1 looks like a capital I, so "Psalm 11" would read as "Psalm II" (Seth's choice).
 
 ### Hierarchy
-- **Display** (700, 30px, 1.1, -0.01em): the date on Today and the week title on Week. The largest text on any screen. Balanced wrapping.
-- **Headline** (700, 26px, 1.1, -0.01em): a Bible reference in a reading row. References are glanced at from beside an open Bible, so they stay this large. Week previews use a reduced 20px bold.
-- **Title** (700, 17px): section headings ("This week") and week summaries in the Plan list.
+- **Display** (Vollkorn 700, 32px, 1.1, -0.005em): the date on Today and the week title on Week. The largest text on any screen. Balanced wrapping.
+- **Headline** (Vollkorn 700, 29px, 1.1, -0.005em): a Bible reference in a reading row. References are glanced at from beside an open Bible, so they stay this large. Week previews use a reduced 21px.
+- **Title** (Vollkorn 700, 19px): section headings ("This week") and week summaries in the Plan list.
 - **Body** (400, 16px, 1.4): the week sequence line, settings rows, button text (at 700).
 - **Label** (400, 14px): track names, sync state, meta counts, form labels, text buttons, preview banner.
 - **Label small** (400, 13px; tabs at 12px): week-grid labels, partner names, the key, tab-bar captions. The current day and active tab switch to ink at 700.
 
 ### Named Rules
-**The Two-Weights Rule.** Hierarchy comes from size and 400/700 only. No italics, no uppercase labels, no letter-spaced small caps.
+**The Two-Voices Rule.** Big type (date, references, section and week headings, the caught-up message) is Vollkorn; everything else is Atkinson. Hierarchy comes from size, the two faces and 400/700 only. No italics, no uppercase labels, no letter-spaced small caps.
 
 **The Reference-Is-Biggest-in-Its-Row Rule.** In any list of readings, the reference is the dominant text; track name and links sit under it at 14px in secondary ink.
 
