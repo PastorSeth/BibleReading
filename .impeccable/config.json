@@ -38,6 +38,42 @@
         ],
         "createdAt": "2026-11-27T00:39:50.236Z",
         "reason": "Claude: rejected or superseded mockup / decision-round sketch kept as history; Seth chose the e-ink Plan Sheet recorded in DESIGN.md"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          "docs/mockups/plan-sheet-eink.html"
+        ],
+        "createdAt": "2026-11-27T04:15:12.169Z",
+        "reason": "Claude: historical mockup from before Seth chose Vollkorn + Alegreya Sans; kept as design history"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          "docs/mockups/eink-v1-focus.html"
+        ],
+        "createdAt": "2026-11-27T04:15:12.184Z",
+        "reason": "Claude: historical mockup from before Seth chose Vollkorn + Alegreya Sans; kept as design history"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          "docs/mockups/eink-v2-week.html"
+        ],
+        "createdAt": "2026-11-27T04:15:12.199Z",
+        "reason": "Claude: historical mockup from before Seth chose Vollkorn + Alegreya Sans; kept as design history"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          "docs/mockups/eink-v3-together.html"
+        ],
+        "createdAt": "2026-11-27T04:15:12.213Z",
+        "reason": "Claude: historical mockup from before Seth chose Vollkorn + Alegreya Sans; kept as design history"
       }
     ]
   }
