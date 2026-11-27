@@ -11,7 +11,7 @@
    Sheet and to Biblia.com always go straight to the network.
    ============================================================ */
 
-const CACHE_NAME = 'bible-reading-2027-v5';
+const CACHE_NAME = 'bible-reading-2027-v6';
 
 const APP_SHELL = [
   './',
