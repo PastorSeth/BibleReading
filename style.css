@@ -303,13 +303,13 @@ nav.tabs svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stro
   clip-path: inset(-30% calc((1 - var(--p, 0)) * 100%) -30% -10%);
 }
 
-/* ---------- HEAR Method (Extras) ----------
+/* ---------- Bible study methods: HEAR and MAPS (Extras) ----------
    Each step hangs off a big letter in a square box, like a tick box on
    the plan; the example is a notebook page with one red margin line; the
    source sits quietly under a rule at the very bottom. */
-.hear .hear-step { display: grid; grid-template-columns: 52px 1fr; gap: 14px; margin-top: 26px; }
-.hear-letter { width: 52px; height: 52px; display: grid; place-items: center; border: 2px solid var(--ink); font-family: var(--display); font-size: 32px; font-weight: 700; line-height: 1; }
-.hear .hear-step h2 { margin: 0 0 6px; }
+.method .step { display: grid; grid-template-columns: 52px 1fr; gap: 14px; margin-top: 26px; }
+.step-letter { width: 52px; height: 52px; display: grid; place-items: center; border: 2px solid var(--ink); font-family: var(--display); font-size: 32px; font-weight: 700; line-height: 1; }
+.method .step h2 { margin: 0 0 6px; }
 .prompts { list-style: none; padding: 0; margin: 4px 0 0; color: var(--ink-2); }
 .prompts li { padding: 3px 0 3px 16px; position: relative; }
 .prompts li::before { content: ''; position: absolute; left: 0; top: .78em; width: 8px; border-top: 1.5px solid var(--rule); }
@@ -317,7 +317,7 @@ nav.tabs svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stro
 .journal-line { display: grid; grid-template-columns: 40px 1fr; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--faint); }
 .journal-line:last-child { border-bottom: 0; }
 .journal-letter { font-family: var(--display); font-size: 20px; font-weight: 700; text-align: center; line-height: 1.4; }
-.hear .journal p { margin: 0; }
+.method .journal p { margin: 0; }
 .source { margin-top: 36px; padding-top: 12px; border-top: 1px solid var(--rule); font-size: 14px; color: var(--ink-2); }
 .source-label { display: block; margin-bottom: 4px; font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
 .extras .source p { margin: 0; }

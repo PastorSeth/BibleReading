@@ -314,11 +314,11 @@ test('app: tab bar is Extras, Week, Today, Plan, Account', () => {
   assertEqual(tabBar({ name: 'about' }, new Date(2027, 0, 6)).querySelector('a.on').textContent, 'Extras');
 });
 
-test('app: extras is a menu that opens the Gospel, HEAR, About and the printable plan', () => {
+test('app: extras is a menu that opens the Gospel, HEAR, MAPS, About and the printable plan', () => {
   const el = renderExtras(new Date(2027, 0, 6));
   const rows = [...el.querySelectorAll('a.extras-row')];
-  assertEqual(rows.map(a => a.querySelector('.row-title').textContent), ['The Gospel', 'HEAR Method for Bible Study', 'About this reading plan', 'Printable plan']);
-  assertEqual(rows.map(a => a.getAttribute('href')), ['#/gospel', '#/hear', '#/about', '#/print/2027']);
+  assertEqual(rows.map(a => a.querySelector('.row-title').textContent), ['The Gospel', 'HEAR Method for Bible Study', 'MAPS Method for Bible Study', 'About this reading plan', 'Printable plan']);
+  assertEqual(rows.map(a => a.getAttribute('href')), ['#/gospel', '#/hear', '#/maps', '#/about', '#/print/2027']);
   assert(!el.textContent.includes('Replicate'), 'the about text lives on its own page now');
   assertEqual(el.querySelector('main h2').textContent, 'Share this app with a friend');
   assert(el.querySelector('button.share-app'), 'share button stays on Extras');
@@ -615,11 +615,11 @@ test('hear: Extras links to it and the route opens it', () => {
 test('hear: the page walks through the four steps, with an example and its source', () => {
   const page = renderHear();
   assertEqual(page.querySelector('h1').textContent, 'HEAR Method for Bible Study');
-  const steps = [...page.querySelectorAll('.hear-step')];
-  assertEqual(steps.map(s => s.querySelector('.hear-letter').textContent), ['H', 'E', 'A', 'R']);
+  const steps = [...page.querySelectorAll('.step')];
+  assertEqual(steps.map(s => s.querySelector('.step-letter').textContent), ['H', 'E', 'A', 'R']);
   assertEqual(steps.map(s => s.querySelector('h2').textContent), ['Highlight', 'Explain', 'Apply', 'Respond']);
   steps.forEach(s => assert(s.querySelectorAll('.prompts li').length >= 2, `${s.querySelector('h2').textContent} has questions to ask`));
-  assertIncludes(page.querySelector('.pray-first').textContent, 'Psalm 119:18');
+  assertIncludes(page.querySelector('.before').textContent, 'Psalm 119:18');
   const example = page.querySelector('.journal');
   assertEqual([...example.querySelectorAll('.journal-letter')].map(l => l.textContent), ['H', 'E', 'A', 'R']);
   const source = page.querySelector('.source a');
@@ -627,5 +627,31 @@ test('hear: the page walks through the four steps, with an example and its sourc
   assertIncludes(source.textContent, 'H.E.A.R. Journal');
   assertIncludes(page.querySelector('.source').textContent, 'Replicate');
   assertEqual(source.getAttribute('rel'), 'noopener');
+  assert(page.querySelector('.source') === page.querySelector('main').lastElementChild, 'the source is the last thing on the page');
+});
+
+// MAPS Method for Bible Study (Extras), after McLean Bible Church's MAPS guide.
+test('maps: Extras links to it and the route opens it', () => {
+  assertEqual(parseRoute('#/maps'), { name: 'maps' });
+  assertEqual(tabBar({ name: 'maps' }, new Date(2027, 0, 6)).querySelector('.on').textContent, 'Extras');
+  const row = renderExtras(new Date(2027, 0, 6)).querySelector('a.extras-row[href="#/maps"]');
+  assertIncludes(row.querySelector('.row-detail').textContent, 'Meditate, Apply, Pray, Share');
+});
+
+test('maps: the page walks through the four steps, with an example and its source', () => {
+  const page = renderMaps();
+  assertEqual(page.querySelector('h1').textContent, 'MAPS Method for Bible Study');
+  const steps = [...page.querySelectorAll('.step')];
+  assertEqual(steps.map(s => s.querySelector('.step-letter').textContent), ['M', 'A', 'P', 'S']);
+  assertEqual(steps.map(s => s.querySelector('h2').textContent), ['Meditate & Memorize', 'Apply', 'Pray', 'Share']);
+  assertEqual([...steps[1].querySelectorAll('.prompts b')].map(b => b.textContent), ['Head:', 'Heart:', 'Hands:']);
+  assertEqual([...steps[2].querySelectorAll('.prompts b')].map(b => b.textContent), ['Praise:', 'Repent:', 'Ask:', 'Yield:']);
+  steps.forEach(s => assert(s.querySelectorAll('.prompts li').length >= 2, `${s.querySelector('h2').textContent} has questions to ask`));
+  assertIncludes(page.querySelector('.before').textContent, 'Psalm 63:1');
+  assertEqual([...page.querySelectorAll('.journal-letter')].map(l => l.textContent), ['M', 'A', 'P', 'S']);
+  const source = page.querySelector('.source a');
+  assertEqual(source.getAttribute('href'), 'https://mcleanbible.org/wp-content/uploads/2020/05/MAPS-GUIDE.pdf');
+  assertIncludes(source.textContent, 'Guide to Personal Worship Using “MAPS”');
+  assertIncludes(page.querySelector('.source').textContent, 'McLean Bible Church');
   assert(page.querySelector('.source') === page.querySelector('main').lastElementChild, 'the source is the last thing on the page');
 });

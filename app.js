@@ -94,7 +94,7 @@ function parseRoute(hash) {
   if (planYear) return { name: 'plan', year: Math.max(FIRST_YEAR, Number(planYear[1])) };
   const printYear = path.match(/^\/print\/(\d{4})$/);
   if (printYear) return { name: 'print', year: Math.max(FIRST_YEAR, Number(printYear[1])) };
-  if (['/plan', '/catchup', '/account', '/extras', '/print', '/about', '/gospel', '/hear'].includes(path)) return { name: path.slice(1) };
+  if (['/plan', '/catchup', '/account', '/extras', '/print', '/about', '/gospel', '/hear', '/maps'].includes(path)) return { name: path.slice(1) };
   return { name: 'today' };
 }
 
@@ -546,6 +546,7 @@ function renderExtras(now) {
       h('nav', { class: 'extras-menu', 'aria-label': 'Extras' },
         extrasRow('#/gospel', 'The Gospel', 'The good news of Jesus in four parts: God, Man, Jesus and our response.'),
         extrasRow('#/hear', 'HEAR Method for Bible Study', 'A simple way to journal through a reading: Highlight, Explain, Apply, Respond.'),
+        extrasRow('#/maps', 'MAPS Method for Bible Study', 'Meditate, Apply, Pray, Share: a guide for your time alone with God.'),
         extrasRow('#/about', 'About this reading plan', 'Where the readings come from and how the year works.'),
         extrasRow(`#/print/${year}`, 'Printable plan', 'The whole year on paper, with a box for every reading.')),
       h('section', null, h('h2', { text: 'Share this app with a friend' }),
@@ -575,51 +576,92 @@ function renderAbout() {
           h('li', null, h('b', { text: 'Tuesday and Thursday: ' }), 'a short passage from Proverbs, about nine verses. You read the whole book over the year, a little at a time.')))));
 }
 
-/* ---------- HEAR Method for Bible Study (Extras) ----------
-   After the H.E.A.R. Journal from Replicate Ministries, in our own words,
-   with the source credited at the bottom of the page. */
+/* ---------- Bible study methods (Extras): HEAR and MAPS ----------
+   Two ways to journal through a reading, each written in our own words
+   after its source, which is credited and linked at the bottom of the
+   page. Both pages share one layout: a short note on how to begin, four
+   steps under big boxed letters with questions to ask (a question can
+   have a bold lead, like "Head:"), a sample entry set as a notebook page,
+   and the source. */
 
-const HEAR_STEPS = [
-  ['H', 'Highlight', 'Read the passage slowly. When a verse stands out to you, copy it down. Note the book, chapter and verse, and give the passage a short title of your own so you can find it again.',
-    ['Which verse caught my attention?', 'What title sums up this passage?']],
-  ['E', 'Explain', 'Before asking what it means for you, work out what it meant for the people who first heard it. Then sum it up in a sentence or two.',
-    ['Who was this written to, and why?', 'How does it fit with the verses around it?', 'What is God showing about Himself here?']],
-  ['A', 'Apply', 'This is the heart of it. Ask what this truth looks like in your life right now, and write a few sentences.',
-    ['What would change if I took this seriously?', 'Where does this meet my week?', 'What is God saying to me through it?']],
-  ['R', 'Respond', 'Answer God. Write a short prayer, or one thing you will do differently because of what you read.',
-    ['What do I want to say to God about this?', 'What is one step I can take this week?']],
-];
+const HEAR_METHOD = {
+  title: 'HEAR Method for Bible Study',
+  intro: [
+    'HEAR is a simple way to journal through a passage, so a reading becomes more than a box to tick. Grab a notebook, write H, E, A and R down the side of a page, and work through them in order.',
+    'With three readings a day, pick the one that stood out most and HEAR that one.',
+  ],
+  before: ['Pray first', 'Ask God to help you understand what you read. Psalm 119:18 is a good prayer to borrow:',
+    'Psalm 119:18', '“Open my eyes, that I may behold wondrous things out of your law.”'],
+  steps: [
+    ['H', 'Highlight', 'Read the passage slowly. When a verse stands out to you, copy it down. Note the book, chapter and verse, and give the passage a short title of your own so you can find it again.',
+      ['Which verse caught my attention?', 'What title sums up this passage?']],
+    ['E', 'Explain', 'Before asking what it means for you, work out what it meant for the people who first heard it. Then sum it up in a sentence or two.',
+      ['Who was this written to, and why?', 'How does it fit with the verses around it?', 'What is God showing about Himself here?']],
+    ['A', 'Apply', 'This is the heart of it. Ask what this truth looks like in your life right now, and write a few sentences.',
+      ['What would change if I took this seriously?', 'Where does this meet my week?', 'What is God saying to me through it?']],
+    ['R', 'Respond', 'Answer God. Write a short prayer, or one thing you will do differently because of what you read.',
+      ['What do I want to say to God about this?', 'What is one step I can take this week?']],
+  ],
+  example: [
+    ['H', 'Psalm 1:3, “Planted by the stream”', '“He is like a tree planted by streams of water that yields its fruit in its season, and its leaf does not wither.”'],
+    ['E', null, 'Psalm 1 opens the Psalms with two ways to live. The person who keeps coming back to God’s word is like a tree with its roots in a stream: steady, alive and fruitful, even in a dry season.'],
+    ['A', null, 'When I’m worn out, I reach for my phone to refill. This says lasting strength comes from staying rooted in God’s word, day after day.'],
+    ['R', null, 'Lord, plant me by your stream. Help me open your word before anything else tomorrow morning.'],
+  ],
+  source: ['https://replicate.org/resources/hear-journal', 'H.E.A.R. Journal', ' by Replicate Ministries, the team behind the F260 reading plan.'],
+};
 
-const HEAR_EXAMPLE = [
-  ['H', 'Psalm 1:3, “Planted by the stream”', '“He is like a tree planted by streams of water that yields its fruit in its season, and its leaf does not wither.”'],
-  ['E', null, 'Psalm 1 opens the Psalms with two ways to live. The person who keeps coming back to God’s word is like a tree with its roots in a stream: steady, alive and fruitful, even in a dry season.'],
-  ['A', null, 'When I’m worn out, I reach for my phone to refill. This says lasting strength comes from staying rooted in God’s word, day after day.'],
-  ['R', null, 'Lord, plant me by your stream. Help me open your word before anything else tomorrow morning.'],
-];
+const MAPS_METHOD = {
+  title: 'MAPS Method for Bible Study',
+  intro: [
+    'MAPS is a guide for your time alone with God: Meditate, Apply, Pray and Share. It moves from understanding a passage, to letting it change you, to talking with God about it, to passing it on.',
+    'You can walk through MAPS with one of the day’s readings or with all three together. You don’t have to answer every question; they’re there to help you think.',
+  ],
+  before: ['Before you start', 'Find a quiet place, and bring your Bible and something to write with. Start by praising God and telling Him you want to know Him more, then ask Him to teach you as you read. Keep it from becoming a routine: the point is time with Him.',
+    'Psalm 63:1', '“O God, you are my God; earnestly I seek you; my soul thirsts for you; my flesh faints for you, as in a dry and weary land where there is no water.”'],
+  steps: [
+    ['M', 'Meditate & Memorize', 'To meditate is to reflect. Read slowly, then think about what the passage says and means, and write down a few thoughts. If a verse stands out, start memorizing it, and go back over the ones you’ve already learned.',
+      ['What is happening here: who, what, where, when and why?', 'Which words or ideas seem most important?', 'What does it show about God, about us, and about following Jesus?', 'What is the main point? Is there anything to look into further?']],
+    ['A', 'Apply', 'Let the passage change you in three ways, then make a plan to follow through.',
+      [['Head:', 'How should I think differently about God, others, myself or the world?'], ['Heart:', 'How does this change what I want?'], ['Hands:', 'What does this call me to do, or stop doing?']]],
+    ['P', 'Pray', 'Pray through what you read and how you want to apply it, asking God to change your mind, heart and life. Then let your prayer widen out:',
+      [['Praise:', 'What does this show about God’s character? Praise Him for it.'], ['Repent:', 'Where does it show your sin or unbelief? Confess it.'], ['Ask:', 'Pray one thing for yourself and one for someone else.'], ['Yield:', 'Tell God how you want to live this out.']]],
+    ['S', 'Share', 'Finish by choosing at least one person to tell what God showed you. Pray through your day, and ask Him for a chance, and the courage, to share the gospel.',
+      ['Who could I tell about this today?', 'Where might God give me a chance to share the gospel?']],
+  ],
+  example: [
+    ['M', 'Luke 5:1–11', 'Simon has fished all night and caught nothing, but he lets down the nets again because Jesus says so. The huge catch shows who Jesus is, and Simon falls at His feet. To memorize, Luke 5:5: “Master, we toiled all night and took nothing! But at your word I will let down the nets.”'],
+    ['A', null, 'Head: Jesus is Lord over my ordinary work, too. Heart: I want to trust His word more than my own experience. Hands: do the thing I’ve been putting off because I doubted it would matter.'],
+    ['P', null, 'Lord, you see where I’ve worked hard and come up empty. Help me trust your word and obey, even when it doesn’t make sense to me.'],
+    ['S', null, 'Tell my small group about this passage on Thursday and ask them to pray for me.'],
+  ],
+  source: ['https://mcleanbible.org/wp-content/uploads/2020/05/MAPS-GUIDE.pdf', 'Guide to Personal Worship Using “MAPS”', ' by McLean Bible Church.'],
+};
 
-function renderHear() {
+function renderMethod(m) {
+  const [beforeTitle, beforeText, verseRef, verseText] = m.before;
+  const [href, sourceTitle, sourceRest] = m.source;
   return h('div', { class: 'screen' },
-    h('header', null, h('div', { class: 'bar' }, backLink()), h('h1', { text: 'HEAR Method for Bible Study' })),
-    h('main', { class: 'extras about hear' },
-      h('p', { text: 'HEAR is a simple way to journal through a passage, so a reading becomes more than a box to tick. Grab a notebook, write H, E, A and R down the side of a page, and work through them in order.' }),
-      h('p', { text: 'With three readings a day, pick the one that stood out most and HEAR that one.' }),
-      h('section', { class: 'pray-first' }, h('h2', { text: 'Pray first' }),
-        h('p', { text: 'Ask God to help you understand what you read. Psalm 119:18 is a good prayer to borrow:' }),
-        h('blockquote', { class: 'verse' }, h('p', { text: '“Open my eyes, that I may behold wondrous things out of your law.”' }), h('cite', { text: 'Psalm 119:18' }))),
-      HEAR_STEPS.map(([letter, word, what, prompts]) => h('section', { class: 'hear-step' },
-        h('span', { class: 'hear-letter', 'aria-hidden': 'true', text: letter }),
+    h('header', null, h('div', { class: 'bar' }, backLink()), h('h1', { text: m.title })),
+    h('main', { class: 'extras about method' },
+      m.intro.map(text => h('p', { text })),
+      h('section', { class: 'before' }, h('h2', { text: beforeTitle }), h('p', { text: beforeText }),
+        h('blockquote', { class: 'verse' }, h('p', { text: verseText }), h('cite', { text: verseRef }))),
+      m.steps.map(([letter, word, what, prompts]) => h('section', { class: 'step' },
+        h('span', { class: 'step-letter', 'aria-hidden': 'true', text: letter }),
         h('div', null, h('h2', { text: word }), h('p', { text: what }),
-          h('ul', { class: 'prompts' }, prompts.map(q => h('li', { text: q })))))),
+          h('ul', { class: 'prompts' }, prompts.map(q => (Array.isArray(q) ? h('li', null, h('b', { text: q[0] }), ` ${q[1]}`) : h('li', { text: q }))))))),
       h('section', null, h('h2', { text: 'An example' }),
-        h('div', { class: 'journal' }, HEAR_EXAMPLE.map(([letter, title, text]) => h('div', { class: 'journal-line' },
+        h('div', { class: 'journal' }, m.example.map(([letter, title, text]) => h('div', { class: 'journal-line' },
           h('span', { class: 'journal-letter', text: letter }),
           h('p', null, title ? h('b', { text: title }) : null, title ? h('br') : null, text))))),
       h('footer', { class: 'source' },
         h('span', { class: 'source-label', text: 'Source' }),
-        h('p', null, 'Adapted from the ',
-          h('a', { href: 'https://replicate.org/resources/hear-journal', target: '_blank', rel: 'noopener', text: 'H.E.A.R. Journal' }),
-          ' by Replicate Ministries, the team behind the F260 reading plan.'))));
+        h('p', null, 'Adapted from the ', h('a', { href, target: '_blank', rel: 'noopener', text: sourceTitle }), sourceRest))));
 }
+
+const renderHear = () => renderMethod(HEAR_METHOD);
+const renderMaps = () => renderMethod(MAPS_METHOD);
 
 /* ---------- The Gospel (Extras) ----------
    Content and drawing are in gospel.js. The drawing pins to the top of
@@ -735,7 +777,7 @@ function renderPrint(year, now, settings = {}) {
 function tabBar(route, now) {
   const tabs = [['extras', '#/extras', 'Extras'], ['week', `#/week/${currentYear(now)}/${currentWeek(now)}`, 'Week'],
     ['today', '#/', 'Today'], ['plan', '#/plan', 'Plan'], ['account', '#/account', 'Account']];
-  const active = { catchup: 'today', print: 'extras', about: 'extras', gospel: 'extras', hear: 'extras' }[route.name] || route.name;
+  const active = { catchup: 'today', print: 'extras', about: 'extras', gospel: 'extras', hear: 'extras', maps: 'extras' }[route.name] || route.name;
   return h('nav', { class: 'tabs', 'aria-label': 'Sections' }, tabs.map(([name, href, label]) =>
     h('a', { href, class: name === active ? 'on' : null, 'aria-current': name === active ? 'page' : null }, icon(name), label)));
 }
@@ -806,6 +848,7 @@ function render() {
     about: () => renderAbout(),
     gospel: () => renderGospel(),
     hear: () => renderHear(),
+    maps: () => renderMaps(),
   };
   const focusedId = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.id : null;
   const previewing = /[?&]date=/.test(location.search);
