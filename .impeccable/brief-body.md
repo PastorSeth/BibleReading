@@ -2,7 +2,7 @@ Scope: the whole app shell (Today, Week, Plan, Catch up, Account). Mode: operate
 Audience and job: Seth, his wife and anyone they share it with glance at today's three references, read in a printed Bible, and come back to check them off. Partners see each other's checks.
 Constraints: no memory verse (removed by Seth). Standard text sizes. Nothing churchy or ornate. Links to Biblia stay small and quiet.
 Seth's steers on the chosen card: an e-ink feel with muted accent colors; the checkbox gets a very small animation when marked done.
-Unresolved: self-hosting the chosen webfont needs Seth's OK to download font files.
+Resolved: Seth approved downloading Atkinson Hyperlegible (now self-hosted in fonts/). Seth removed the translation choice; online links are always ESV, the show/hide links switch stays.
 
 ## Direction contract
 

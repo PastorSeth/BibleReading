@@ -38,3 +38,33 @@ test('sw: install fetches fresh copies, bypassing the browser cache', async () =
   const sw = await (await fetch('../service-worker.js')).text();
   assertIncludes(sw, "new Request(url, { cache: 'reload' })");
 });
+
+// The tick's e-ink moment: a short ink flash, then the track color with the check visibly drawing.
+async function tickAt(ms, pressed) {
+  const f = document.createElement('iframe');
+  f.src = 'tick-frame.html';
+  document.body.appendChild(f);
+  await new Promise(r => { f.onload = r; });
+  const doc = f.contentDocument, btn = doc.querySelector('.tick'), path = doc.querySelector('.tick svg');
+  btn.setAttribute('aria-pressed', String(pressed));
+  btn.classList.add('refresh');
+  btn.getAnimations({ subtree: true }).forEach(a => { a.pause(); a.currentTime = ms; });
+  const bg = getComputedStyle(btn).backgroundColor, offset = parseFloat(getComputedStyle(path).strokeDashoffset);
+  f.remove();
+  return { bg, offset };
+}
+
+test('tick: ticking flashes ink first', async () => {
+  assertEqual((await tickAt(40, true)).bg, 'rgb(30, 31, 31)');
+});
+
+test('tick: then the check draws over the track color', async () => {
+  const mid = await tickAt(180, true);
+  assertEqual(mid.bg, 'rgb(63, 110, 108)', 'box should already be New Testament teal while the check draws');
+  assert(mid.offset > 0 && mid.offset < 24, `check should be part-drawn at 180ms, offset ${mid.offset}`);
+});
+
+test('tick: unticking flashes ink, then clears to paper', async () => {
+  assertEqual((await tickAt(40, false)).bg, 'rgb(30, 31, 31)');
+  assertEqual((await tickAt(180, false)).bg, 'rgb(231, 231, 226)');
+});

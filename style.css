@@ -61,9 +61,13 @@ main > .readings:first-child { margin-top: 18px; }
 .tick svg { width: 24px; height: 24px; fill: none; stroke: var(--paper); stroke-width: 3; stroke-linecap: square; stroke-dasharray: 24; stroke-dashoffset: 24; }
 .tick[aria-pressed="true"] { background: var(--c); border-color: var(--c); }
 .tick[aria-pressed="true"] svg { stroke-dashoffset: 0; }
-.tick.refresh { animation: refresh 260ms steps(1, end); }
-.tick.refresh[aria-pressed="true"] svg { animation: draw 200ms 90ms steps(4, end) both; }
-@keyframes refresh { 0% { background: var(--ink); border-color: var(--ink); } 45% { background: var(--paper); border-color: var(--ink); } }
+/* Ticking: ink for ~120ms, then the track color while the check draws in 4 steps.
+   Unticking: ink, then back to paper. */
+.tick.refresh { animation: refresh-off 260ms steps(1, end); }
+.tick.refresh[aria-pressed="true"] { animation-name: refresh-on; }
+.tick.refresh[aria-pressed="true"] svg { animation: draw 200ms 120ms steps(4, end) both; }
+@keyframes refresh-on { 0% { background: var(--ink); border-color: var(--ink); } 45% { background: var(--c); border-color: var(--c); } }
+@keyframes refresh-off { 0% { background: var(--ink); border-color: var(--ink); } 45% { background: var(--paper); border-color: var(--ink); } }
 @keyframes draw { from { stroke-dashoffset: 24; } to { stroke-dashoffset: 0; } }
 @media (prefers-reduced-motion: reduce) { .tick.refresh, .tick.refresh svg { animation: none !important; } }
 
@@ -147,6 +151,13 @@ details[open] summary .count { color: var(--ink); font-weight: 700; }
 .signout { margin-top: 18px; }
 .tip { margin-top: 28px; font-size: 14px; }
 .noscript { padding: 40px 20px; }
+
+/* ---------- Wider screens: the app is one sheet on a darker desk ---------- */
+@media (min-width: 600px) {
+  html { background: #CFD0CA; }
+  body { background: transparent; }
+  .app { background: var(--paper); border-left: 2px solid var(--ink); border-right: 2px solid var(--ink); }
+}
 
 /* ---------- Tab bar ---------- */
 nav.tabs { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 2px solid var(--ink); padding: 8px 0 max(14px, env(safe-area-inset-bottom)); position: sticky; bottom: 0; background: var(--paper); }
