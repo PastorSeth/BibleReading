@@ -237,3 +237,10 @@ test('app: a partner\'s year-less checkmarks count as 2027', () => {
   const el = renderToday(new Date(2027, 0, 4, 8), {}, SETTINGS, withPartners(partner('Anna', { 'w01d1-nt': { done: true, t: 1 } })));
   assertIncludes(rowFor(el, 'Luke 1').textContent, 'Anna');
 });
+
+test('app: catch-up lists the newest week first, days in order within a week', () => {
+  const el = renderCatchUp(new Date(2027, 0, 13, 9), {}, SETTINGS, NO_SYNC); // Wednesday of week 2
+  const heads = [...el.querySelectorAll('main h2, main h3')].map(x => `${x.tagName} ${x.textContent}`);
+  assertEqual(heads, ['H2 Week 2', 'H3 Monday, January 11', 'H3 Tuesday, January 12',
+    'H2 Week 1', 'H3 Monday, January 4', 'H3 Tuesday, January 5', 'H3 Wednesday, January 6', 'H3 Thursday, January 7', 'H3 Friday, January 8']);
+});

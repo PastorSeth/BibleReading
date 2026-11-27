@@ -314,7 +314,15 @@ function renderCatchUp(now, progress, settings, syncState) {
   if (!ids.length) {
     append(main, h('p', { class: 'empty', text: "You're all caught up." }), h('p', { class: 'catch' }, h('a', { href: '#/', text: 'Back to today' })));
   } else {
-    itemsForIds(ids).forEach(g => append(main, h('h2', { text: longDate(dateFor(g.year, g.week, g.weekday)) }), readingList(g.items, progress, partners, settings)));
+    // Newest week first; within a week, Monday to Friday.
+    const groups = itemsForIds(ids).sort((a, b) => (b.year - a.year) || (b.week - a.week) || (a.weekday - b.weekday));
+    let lastWeek = null;
+    groups.forEach(g => {
+      const weekKey = `${g.year}-${g.week}`;
+      if (weekKey !== lastWeek) append(main, h('h2', { text: `Week ${g.week}` }));
+      lastWeek = weekKey;
+      append(main, h('h3', { class: 'day-head', text: longDate(dateFor(g.year, g.week, g.weekday)) }), readingList(g.items, progress, partners, settings));
+    });
   }
   return h('div', { class: 'screen' },
     h('header', null, topBar(syncState), h('h1', { text: 'Catch up' }),
