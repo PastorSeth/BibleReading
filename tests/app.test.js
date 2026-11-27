@@ -25,6 +25,7 @@ test('app: parseRoute', () => {
   assertEqual(parseRoute('#/catchup'), { name: 'catchup' });
   assertEqual(parseRoute('#/account'), { name: 'account' });
   assertEqual(parseRoute('#/extras'), { name: 'extras' });
+  assertEqual(parseRoute('#/about'), { name: 'about' });
   assertEqual(parseRoute('#/print'), { name: 'print' });
   assertEqual(parseRoute('#/print/2028'), { name: 'print', year: 2028 });
   assertEqual(parseRoute('#/nope'), { name: 'today' });
@@ -310,22 +311,29 @@ test('app: tab bar is Extras, Week, Today, Plan, Account', () => {
   assertEqual(nav.querySelector('a.on').textContent, 'Today');
   assertEqual(nav.querySelector('a').getAttribute('href'), '#/extras');
   assertEqual(tabBar({ name: 'print' }, new Date(2027, 0, 6)).querySelector('a.on').textContent, 'Extras');
+  assertEqual(tabBar({ name: 'about' }, new Date(2027, 0, 6)).querySelector('a.on').textContent, 'Extras');
 });
 
-test('app: extras page has its three sections', () => {
+test('app: extras is a menu that opens About and the printable plan', () => {
   const el = renderExtras(new Date(2027, 0, 6));
-  assertEqual([...el.querySelectorAll('main h2')].map(x => x.textContent),
-    ['About this reading plan', 'Printable plan', 'Share this app with a friend']);
+  const rows = [...el.querySelectorAll('a.extras-row')];
+  assertEqual(rows.map(a => a.querySelector('.row-title').textContent), ['About this reading plan', 'Printable plan']);
+  assertEqual(rows.map(a => a.getAttribute('href')), ['#/about', '#/print/2027']);
+  assert(!el.textContent.includes('Replicate'), 'the about text lives on its own page now');
+  assertEqual(el.querySelector('main h2').textContent, 'Share this app with a friend');
+  assert(el.querySelector('button.share-app'), 'share button stays on Extras');
+});
+
+test('app: about page', () => {
+  const el = renderAbout();
+  assertEqual(el.querySelector('h1').textContent, 'About this reading plan');
   assertIncludes(el.textContent, 'Replicate');
   assertIncludes(el.textContent, 'first Monday of January');
-  assertEqual(el.querySelector('a.open-print').getAttribute('href'), '#/print/2027');
-  assertEqual(el.querySelector('a.open-print-next').getAttribute('href'), '#/print/2028');
-  assertIncludes(el.querySelector('a.open-print-next').textContent, '2028');
-  assert(el.querySelector('button.share-app'), 'share button');
+  assertEqual(el.querySelector('a.back').getAttribute('href'), '#/extras');
 });
 
 test('app: printable plan lists every day of the year with tick boxes', () => {
-  const el = renderPrint(2027);
+  const el = renderPrint(2027, new Date(2027, 0, 6));
   assertIncludes(el.querySelector('h1').textContent, '2027');
   assertEqual(el.querySelectorAll('.print-week').length, 52);
   assertEqual(el.querySelectorAll('.print-day').length, 260);
@@ -357,4 +365,18 @@ test('app: share uses the phone share sheet when there is one', async () => {
   let shared = null;
   await shareApp(el.querySelector('.share-app'), { share: async d => { shared = d; } }, { origin: 'https://example.test', pathname: '/BibleReading/' });
   assertEqual(shared.url, 'https://example.test/BibleReading/');
+});
+
+test('app: printable plan has a this-year / next-year switch and a back link', () => {
+  const el = renderPrint(2027, new Date(2027, 0, 6));
+  const years = [...el.querySelectorAll('.years a')].map(a => [a.textContent, a.getAttribute('href'), a.getAttribute('aria-current')]);
+  assertEqual(years, [['2027', '#/print/2027', 'page'], ['2028', '#/print/2028', null]]);
+  assertEqual(el.querySelector('a.back').getAttribute('href'), '#/extras');
+  assertEqual(renderPrint(2028, new Date(2027, 0, 6)).querySelector('.years a[aria-current="page"]').textContent, '2028');
+});
+
+test('app: a plan that ends next January says which year', () => {
+  assertIncludes(renderPlan(2026, new Date(2026, 5, 1), {}).querySelector('.seq').textContent, 'January 5 to January 1, 2027');
+  assertIncludes(renderPrint(2026, new Date(2026, 5, 1)).querySelector('.seq').textContent, 'January 5 to January 1, 2027');
+  assertIncludes(renderPlan(2027, new Date(2027, 5, 1), {}).querySelector('.seq').textContent, 'January 4 to December 31.');
 });

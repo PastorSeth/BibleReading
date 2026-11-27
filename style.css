@@ -185,6 +185,7 @@ details[open] summary .count { color: var(--ink); font-weight: 700; }
 
 /* ---------- Extras ---------- */
 .extras section { margin-top: 4px; }
+main.extras > p:first-child { margin-top: 16px; }
 .extras p { margin-bottom: 10px; }
 .about-list { padding-left: 20px; margin: 0 0 10px; }
 .about-list li { margin-bottom: 8px; }
@@ -192,8 +193,17 @@ a.btn { display: inline-block; text-decoration: none; }
 .share-note:empty { display: none; }
 .share-note { margin-top: 10px; overflow-wrap: anywhere; }
 
+/* Extras menu rows and the back link on Extras pages */
+.extras-menu { border-top: 2px solid var(--ink); margin-top: 18px; }
+.extras-row { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--rule); text-decoration: none; color: var(--ink); }
+.extras-row > span { flex: 1; display: grid; gap: 3px; }
+.row-title { font-family: var(--display); font-weight: 700; font-size: 20px; }
+.row-detail { font-size: 15px; color: var(--ink-2); }
+.extras-row svg { width: 20px; height: 20px; fill: none; stroke: var(--ink-2); stroke-width: 2; flex: none; }
+.back { display: inline-flex; align-items: center; gap: 2px; text-decoration: none; color: var(--ink); font-size: 16px; padding: 6px 6px 6px 0; }
+.back svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; }
+
 /* ---------- Printable plan ---------- */
-.print-actions a { font-size: 16px; }
 .print-week { break-inside: avoid; page-break-inside: avoid; border-top: 2px solid var(--ink); margin-top: 18px; padding-top: 6px; }
 .print-week h2 { margin: 0 0 6px; font-size: 17px; }
 .print-week h2 .muted { font-family: var(--face); font-weight: 400; font-size: 14px; margin-left: 6px; }

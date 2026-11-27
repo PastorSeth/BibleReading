@@ -94,7 +94,7 @@ function parseRoute(hash) {
   if (planYear) return { name: 'plan', year: Math.max(FIRST_YEAR, Number(planYear[1])) };
   const printYear = path.match(/^\/print\/(\d{4})$/);
   if (printYear) return { name: 'print', year: Math.max(FIRST_YEAR, Number(printYear[1])) };
-  if (['/plan', '/catchup', '/account', '/extras', '/print'].includes(path)) return { name: path.slice(1) };
+  if (['/plan', '/catchup', '/account', '/extras', '/print', '/about'].includes(path)) return { name: path.slice(1) };
   return { name: 'today' };
 }
 
@@ -106,6 +106,12 @@ function currentWeek(now) {
 }
 
 const currentYear = now => planDayForDate(now).year;
+
+// "January 4 to December 31", or "January 5 to January 1, 2027" when the plan ends next January.
+function planRange(year) {
+  const end = dateFor(year, WEEKS, 5);
+  return `${shortDate(planStart(year))} to ${shortDate(end)}${end.getFullYear() !== year ? `, ${end.getFullYear()}` : ''}`;
+}
 
 /* ---------- Partners ---------- */
 
@@ -318,7 +324,7 @@ function renderPlan(year, now, progress) {
   return h('div', { class: 'screen' },
     h('header', null, h('div', { class: 'bar' }, h('span', { text: 'Bible Reading' })),
       h('h1', { text: `The ${year} plan` }),
-      h('p', { class: 'seq', text: `${READING_DAYS} readings, Monday to Friday, ${shortDate(planStart(year))} to ${shortDate(dateFor(year, WEEKS, 5))}.` }),
+      h('p', { class: 'seq', text: `${READING_DAYS} readings, Monday to Friday, ${planRange(year)}.` }),
       years.length > 1 ? h('nav', { class: 'years', 'aria-label': 'Years' }, years.map(y =>
         h('a', { href: `#/plan/${y}`, 'aria-current': y === year ? 'page' : null, text: String(y) }))) : null),
     main);
@@ -463,30 +469,46 @@ async function shareApp(button, nav = navigator, loc = location) {
   }
 }
 
+function backLink() {
+  return h('a', { class: 'back', href: '#/extras' }, icon('prev'), 'Extras');
+}
+
+function extrasRow(href, title, detail) {
+  return h('a', { class: 'extras-row', href },
+    h('span', null, h('span', { class: 'row-title', text: title }), h('span', { class: 'row-detail', text: detail })),
+    icon('next'));
+}
+
 function renderExtras(now) {
   const year = currentYear(now);
   return h('div', { class: 'screen' },
     h('header', null, h('div', { class: 'bar' }, h('span', { text: 'Bible Reading' })), h('h1', { text: 'Extras' })),
     h('main', { class: 'extras' },
-      h('section', null, h('h2', { text: 'About this reading plan' }),
-        h('p', { text: 'One year, five days a week. Each weekday has three readings to read in your own Bible:' }),
-        h('ul', { class: 'about-list' },
-          h('li', null, h('b', { text: 'New Testament: ' }), 'one chapter a day, from the Foundations New Testament plan by Replicate (replicate.org). All 260 chapters of the New Testament in a year.'),
-          h('li', null, h('b', { text: 'Old Testament: ' }), 'one reading a day from the Foundations (F260) Old Testament readings, from Genesis to Malachi.'),
-          h('li', null, h('b', { text: 'Psalms and Proverbs: ' }), 'a Psalm on Monday, Wednesday and Friday (all 150, with Psalm 119 in seven parts), and a short passage of Proverbs on Tuesday and Thursday.')),
-        h('p', { text: 'Weekends are left open for catching up or resting. The plan starts again on the first Monday of January each year, and each year keeps its own checkmarks.' })),
-      h('section', null, h('h2', { text: 'Printable plan' }),
-        h('p', { text: `The whole ${year} plan on paper, with a box to tick for every reading. Keep it in your Bible.` }),
-        h('div', { class: 'actions' },
-          h('a', { class: 'btn open-print', href: `#/print/${year}`, text: `Open the ${year} plan` }),
-          h('a', { class: 'open-print-next', href: `#/print/${year + 1}`, text: `Next year's (${year + 1})` }))),
+      h('nav', { class: 'extras-menu', 'aria-label': 'Extras' },
+        extrasRow('#/about', 'About this reading plan', 'Where the readings come from and how the year works.'),
+        extrasRow(`#/print/${year}`, 'Printable plan', 'The whole year on paper, with a box for every reading.')),
       h('section', null, h('h2', { text: 'Share this app with a friend' }),
         h('p', { text: "Send a friend the link. Accounts are optional, and you can add each other as reading partners to see each other's progress." }),
         h('div', { class: 'actions' }, h('button', { type: 'button', class: 'btn primary share-app', text: 'Share the app' })),
         h('p', { class: 'muted share-note', role: 'status' }))));
 }
 
-function renderPrint(year) {
+function renderAbout() {
+  return h('div', { class: 'screen' },
+    h('header', null, h('div', { class: 'bar' }, backLink()), h('h1', { text: 'About this reading plan' })),
+    h('main', { class: 'extras' },
+      h('p', { text: 'One year, five days a week. Each weekday has three readings to read in your own Bible:' }),
+      h('ul', { class: 'about-list' },
+        h('li', null, h('b', { text: 'New Testament: ' }), 'one chapter a day, from the Foundations New Testament plan by Replicate (replicate.org). All 260 chapters of the New Testament in a year.'),
+        h('li', null, h('b', { text: 'Old Testament: ' }), 'one reading a day from the Foundations (F260) Old Testament readings, from Genesis to Malachi.'),
+        h('li', null, h('b', { text: 'Psalms and Proverbs: ' }), 'a Psalm on Monday, Wednesday and Friday (all 150, with Psalm 119 in seven parts), and a short passage of Proverbs on Tuesday and Thursday.')),
+      h('p', { text: 'Weekends are left open for catching up or resting. The plan starts again on the first Monday of January each year, and each year keeps its own checkmarks.' })));
+}
+
+function renderPrint(year, now) {
+  const thisYear = currentYear(now);
+  const years = [thisYear, thisYear + 1];
+  if (!years.includes(year)) years.push(year);
   const weeks = [];
   for (let w = 1; w <= WEEKS; w++) {
     weeks.push(h('section', { class: 'print-week' },
@@ -497,17 +519,19 @@ function renderPrint(year) {
   }
   return h('div', { class: 'screen print-screen' },
     h('header', null,
-      h('div', { class: 'bar print-actions' }, h('a', { href: '#/extras', text: 'Back to Extras' }),
+      h('div', { class: 'bar print-actions' }, backLink(),
         h('button', { type: 'button', class: 'btn primary print-now', text: 'Print' })),
+      h('nav', { class: 'years print-actions', 'aria-label': 'Which year' }, years.map(y =>
+        h('a', { href: `#/print/${y}`, 'aria-current': y === year ? 'page' : null, text: String(y) }))),
       h('h1', { text: `${year} Bible Reading Plan` }),
-      h('p', { class: 'seq', text: `${READING_DAYS} readings, Monday to Friday, ${shortDate(planStart(year))} to ${shortDate(dateFor(year, WEEKS, 5))}. New Testament, Old Testament, and a Psalm or Proverbs each day.` })),
+      h('p', { class: 'seq', text: `${READING_DAYS} readings, Monday to Friday, ${planRange(year)}. New Testament, Old Testament, and a Psalm or Proverbs each day.` })),
     h('main', { class: 'print-weeks' }, weeks));
 }
 
 function tabBar(route, now) {
   const tabs = [['extras', '#/extras', 'Extras'], ['week', `#/week/${currentYear(now)}/${currentWeek(now)}`, 'Week'],
     ['today', '#/', 'Today'], ['plan', '#/plan', 'Plan'], ['account', '#/account', 'Account']];
-  const active = { catchup: 'today', print: 'extras' }[route.name] || route.name;
+  const active = { catchup: 'today', print: 'extras', about: 'extras' }[route.name] || route.name;
   return h('nav', { class: 'tabs', 'aria-label': 'Sections' }, tabs.map(([name, href, label]) =>
     h('a', { href, class: name === active ? 'on' : null, 'aria-current': name === active ? 'page' : null }, icon(name), label)));
 }
@@ -574,7 +598,8 @@ function render() {
     catchup: () => renderCatchUp(now, progress, settings, state),
     account: () => renderAccount(settings, getAccount(), state, catchUpDays(progress, now), confirmingCatchUp),
     extras: () => renderExtras(now),
-    print: () => renderPrint(route.year || currentYear(now)),
+    print: () => renderPrint(route.year || currentYear(now), now),
+    about: () => renderAbout(),
   };
   const focusedId = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.id : null;
   const previewing = /[?&]date=/.test(location.search);
