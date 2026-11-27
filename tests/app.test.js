@@ -582,3 +582,12 @@ test('gospel: with Reduce Motion the drawing is simply complete', () => {
     window.matchMedia = real;
   }
 });
+
+test('gospel: the drawing names its colored marks: God’s light, the cross, and the faith arrow and words', () => {
+  const art = renderGospel().querySelector('svg.bridge-art');
+  assertEqual(art.querySelectorAll('g.god path').length, 5, 'the lines around God');
+  assertEqual(art.querySelectorAll('path.cross').length, 1);
+  assertEqual(art.querySelectorAll('path.faith').length, 3, 'the arrow and its head');
+  assertEqual(art.querySelector('text.faith').textContent, 'in faith');
+  assertEqual([...art.querySelectorAll('.red')].map(el => el.textContent), ['SIN'], 'only SIN stays in red');
+});

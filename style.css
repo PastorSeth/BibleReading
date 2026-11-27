@@ -284,17 +284,19 @@ nav.tabs svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stro
 .extras .verse p { margin: 0; font-size: 18px; line-height: 1.5; }
 .verse cite { display: block; margin-top: 8px; font-style: normal; font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--pen); }
 
-/* The pen: ink lines, God's light, the pit's walls, Jesus's cross and our
-   response in red; the small lines thinner; the cliffs gone over twice. */
+/* The pen: ink lines; God's light and the cross in the plan's muted
+   yellow; the faith arrow and words in its muted blue; SIN in red; the
+   small lines thinner; the cliffs gone over twice. */
 .bridge-art path { fill: none; stroke: var(--ink); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
-.bridge-art .red path, .bridge-art path.red { stroke: var(--pen); }
+.bridge-art .god path, .bridge-art path.cross { stroke: var(--wis); }
 .bridge-art path.thick { stroke-width: 2.7; }
 .bridge-art path.again { stroke-width: 1.4; stroke-opacity: .45; }
-.bridge-art path.faith { stroke: var(--pen); stroke-width: 1.6; }
+.bridge-art path.faith { stroke: var(--nt); stroke-width: 1.6; }
 .bridge-art .rays path, .bridge-art path.pit, .bridge-art [data-who] path { stroke-width: 1.6; }
 .bridge-art path.head { fill: var(--paper); }
 .bridge-art text { font-family: 'Biro Script', 'Bradley Hand', 'Segoe Print', cursive; fill: var(--ink); text-anchor: middle; }
 .bridge-art text.red { fill: var(--pen); }
+.bridge-art text.faith { fill: var(--nt); }
 .drawing .bridge-art path[data-at] { stroke-dasharray: 1; stroke-dashoffset: 1; }
 .drawing .bridge-art text[data-at] {
   -webkit-clip-path: inset(-30% calc((1 - var(--p, 0)) * 100%) -30% -10%);
