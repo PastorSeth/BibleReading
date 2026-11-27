@@ -53,18 +53,13 @@ function readingsFor(week, weekday) {
   ].map(r => ({ id: `${prefix}-${r.track}`, track: r.track, label: TRACK_LABELS[r.track], ref: r.ref }));
 }
 
-function memoryVerseFor(week) {
-  return { id: `w${pad2(week)}-mv`, ref: MEMORY_VERSES[week - 1] };
-}
-
 function weekItemIds(week) {
   const ids = [];
   for (let d = 1; d <= 5; d++) readingsFor(week, d).forEach(r => ids.push(r.id));
   return ids;
 }
 
-// Every reading dated before the given day, plus the memory verse of each
-// week whose Friday is before it — in plan order.
+// Every reading dated before the given day, in plan order.
 function allItemIdsBefore(date) {
   const diff = daysSinceStart(date);
   const ids = [];
@@ -72,7 +67,6 @@ function allItemIdsBefore(date) {
     for (let d = 1; d <= 5; d++) {
       if ((w - 1) * 7 + (d - 1) < diff) readingsFor(w, d).forEach(r => ids.push(r.id));
     }
-    if ((w - 1) * 7 + 4 < diff) ids.push(memoryVerseFor(w).id);
   }
   return ids;
 }

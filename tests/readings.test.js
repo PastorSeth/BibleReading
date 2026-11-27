@@ -1,7 +1,7 @@
 test('readings: counts', () => {
   assertEqual(NT_READINGS.length, 260);
   assertEqual(OT_READINGS.length, 260);
-  assertEqual(MEMORY_VERSES.length, 52);
+  assertEqual(typeof MEMORY_VERSES, 'undefined', 'memory verses were taken out of the plan');
   assertEqual(PSALM_READINGS.length, 156);
   assertEqual(PROVERBS_READINGS.length, 104);
   assertEqual(PROVERBS_VERSE_COUNTS.reduce((a, b) => a + b, 0), 915);
@@ -18,20 +18,6 @@ test('readings: OT spot checks', () => {
     105: 'Deuteronomy 32:48-52; 34', 178: 'Amos 1:1; 9', 210: 'Ezekiel 1:1-3; 36:16-38', 259: 'Malachi 3–4' };
   Object.keys(want).forEach(i => assertEqual(OT_READINGS[i], want[i], `OT ${i}`));
   OT_READINGS.forEach(r => assert(!/^(Psalm|Proverbs)/.test(r), `unexpected ${r}`));
-});
-
-test('readings: memory verses tile Matthew 5:1–7:29', () => {
-  const chapterEnd = { 5: 48, 6: 34, 7: 29 };
-  let c = 5, v = 0;
-  MEMORY_VERSES.forEach(ref => {
-    const m = ref.match(/^Matthew (\d+):(\d+)-(\d+)$/);
-    assert(m, `bad memory verse ${ref}`);
-    const [ch, a, b] = [+m[1], +m[2], +m[3]];
-    if (v === chapterEnd[c]) { c++; v = 0; }
-    assertEqual([ch, a], [c, v + 1], `${ref} should start at ${c}:${v + 1}`);
-    v = b;
-  });
-  assertEqual([c, v], [7, 29]);
 });
 
 test('readings: Psalms', () => {

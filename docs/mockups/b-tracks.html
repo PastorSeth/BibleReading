@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mockup B — Three Tracks</title>
+<style>
+  :root {
+    --bg: #ECEFF4; --ink: #17223A; --muted: #5D6880; --line: #D3D9E4;
+    --nt: #35558A; --ot: #5F6F2C; --wis: #A6741C; --mv: #7A4F86;
+    --sans: 'Avenir Next', Avenir, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    color-scheme: light;
+  }
+  :root.dark { --bg: #111726; --ink: #E3E8F2; --muted: #8E99B0; --line: #253049; --nt: #7E9FD6; --ot: #A4B566; --wis: #D9A855; --mv: #B990C4; color-scheme: dark; }
+  @media (prefers-color-scheme: dark) { :root:not(.light) { --bg: #111726; --ink: #E3E8F2; --muted: #8E99B0; --line: #253049; --nt: #7E9FD6; --ot: #A4B566; --wis: #D9A855; --mv: #B990C4; color-scheme: dark; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); -webkit-font-smoothing: antialiased; }
+  .app { max-width: 430px; margin: 0 auto; padding: 18px 20px 36px; }
+  header { display: flex; justify-content: space-between; font-size: 14px; color: var(--muted); }
+  .sync { color: var(--wis); font-weight: 600; }
+  h1 { font-size: 26px; font-weight: 600; margin: 26px 0 0; letter-spacing: -.01em; }
+  .when { margin: 2px 0 20px; color: var(--muted); font-size: 15px; }
+  .track { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; padding: 16px 0 14px; border-top: 1px solid var(--line); }
+  .track:last-of-type { border-bottom: 1px solid var(--line); }
+  .label { font-size: 14px; font-weight: 600; color: var(--c); display: flex; gap: 8px; align-items: center; }
+  .ref { font-size: 30px; font-weight: 600; letter-spacing: -.015em; line-height: 1.1; }
+  .dots { display: flex; gap: 6px; margin-top: 8px; }
+  .dots i { width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid var(--c); opacity: .6; }
+  .dots i.done { background: var(--c); opacity: 1; }
+  .dots i.today { outline: 2px solid var(--c); outline-offset: 2px; opacity: 1; }
+  .check { grid-row: 1 / span 3; grid-column: 2; align-self: center; width: 52px; height: 52px; border-radius: 50%; border: 2px solid var(--c); background: none; display: grid; place-items: center; cursor: pointer; }
+  .check svg { width: 24px; height: 24px; stroke: var(--bg); opacity: 0; }
+  .check[aria-pressed="true"] { background: var(--c); }
+  .check[aria-pressed="true"] svg { opacity: 1; }
+  .online { color: var(--muted); opacity: .6; display: inline-flex; }
+  .online svg { width: 14px; height: 14px; }
+  .partner { font-size: 11px; font-weight: 700; color: var(--bg); background: var(--c); width: 19px; height: 19px; border-radius: 50%; display: inline-grid; place-items: center; }
+  .nt { --c: var(--nt); } .ot { --c: var(--ot); } .wis { --c: var(--wis); } .mv { --c: var(--mv); }
+  .mv .ref { font-size: 22px; }
+  .summary { margin-top: 22px; font-size: 15px; line-height: 1.55; color: var(--muted); }
+  .summary strong { color: var(--ink); font-weight: 600; }
+  .summary a { color: var(--ink); }
+  nav { position: sticky; bottom: 0; display: grid; grid-template-columns: repeat(4, 1fr); margin-top: 28px; padding-top: 10px; border-top: 1px solid var(--line); font-size: 13px; text-align: center; }
+  nav a { color: var(--muted); text-decoration: none; padding: 8px 0; }
+  nav a.on { color: var(--ink); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header><span>Bible Reading 2027</span><span class="sync">Not synced yet</span></header>
+  <h1>Monday, January 4</h1>
+  <p class="when">Week 1 of 52</p>
+  <section class="track nt">
+    <div class="label">New Testament <span class="partner" title="Anna read this">A</span><a class="online" href="#" aria-label="Read Luke 1 online"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 3h4v4M13 3 7.5 8.5M11 9.5V13H3V5h3.5"/></svg></a></div>
+    <div class="ref">Luke 1</div>
+    <div class="dots" aria-hidden="true"><i class="done today"></i><i></i><i></i><i></i><i></i></div>
+    <button class="check" aria-pressed="true" aria-label="Mark Luke 1 read"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.6"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>
+  </section>
+  <section class="track ot">
+    <div class="label">Old Testament<a class="online" href="#" aria-label="Read Genesis 1 online"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 3h4v4M13 3 7.5 8.5M11 9.5V13H3V5h3.5"/></svg></a></div>
+    <div class="ref">Genesis 1</div>
+    <div class="dots" aria-hidden="true"><i class="today"></i><i></i><i></i><i></i><i></i></div>
+    <button class="check" aria-pressed="false" aria-label="Mark Genesis 1 read"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.6"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>
+  </section>
+  <section class="track wis">
+    <div class="label">Psalm<a class="online" href="#" aria-label="Read Psalm 1 online"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 3h4v4M13 3 7.5 8.5M11 9.5V13H3V5h3.5"/></svg></a></div>
+    <div class="ref">Psalm 1</div>
+    <div class="dots" aria-hidden="true"><i class="today"></i><i></i><i></i><i></i><i></i></div>
+    <button class="check" aria-pressed="false" aria-label="Mark Psalm 1 read"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.6"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>
+  </section>
+  <section class="track mv">
+    <div class="label">Memory verse this week</div>
+    <div class="ref">Matthew 5:1–2</div>
+    <div></div>
+    <button class="check" aria-pressed="false" aria-label="Mark memory verse learned"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.6"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>
+  </section>
+  <p class="summary"><strong>This week:</strong> you 1 of 15, Anna 2 of 15.<br><a href="#">3 readings to catch up</a></p>
+  <nav><a class="on" href="#">Today</a><a href="#">Week</a><a href="#">Plan</a><a href="#">Account</a></nav>
+</div>
+<script>
+  if (location.search.includes('dark')) document.documentElement.classList.add('dark');
+  if (location.search.includes('light')) document.documentElement.classList.add('light');
+  document.querySelectorAll('.check').forEach(b => b.onclick = () => b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') !== 'true'));
+</script>
+</body>
+</html>

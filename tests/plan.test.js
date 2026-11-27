@@ -38,26 +38,21 @@ test('plan: readingsFor', () => {
   assertEqual(readingsFor(52, 4)[2].ref, 'Proverbs 31:21-31');
 });
 
-test('plan: memory verse', () => {
-  assertEqual(memoryVerseFor(1), { id: 'w01-mv', ref: 'Matthew 5:1-2' });
-  assertEqual(memoryVerseFor(52), { id: 'w52-mv', ref: 'Matthew 7:28-29' });
-});
-
 test('plan: weekItemIds', () => {
   const ids = weekItemIds(3);
   assertEqual(ids.length, 15);
   assertEqual(ids[0], 'w03d1-nt');
   assertEqual(ids[14], 'w03d5-ps');
-  assert(!ids.includes('w03-mv'));
 });
 
 test('plan: allItemIdsBefore', () => {
   assertEqual(allItemIdsBefore(new Date(2027, 0, 6, 21)),
     ['w01d1-nt', 'w01d1-ot', 'w01d1-ps', 'w01d2-nt', 'w01d2-ot', 'w01d2-pr']);
   const sat = allItemIdsBefore(new Date(2027, 0, 9));
-  assertEqual(sat.length, 16);
-  assertEqual(sat[15], 'w01-mv');
+  assertEqual(sat.length, 15);
+  assertEqual(sat[14], 'w01d5-ps');
+  assert(!sat.some(id => id.endsWith('-mv')), 'no memory verse items');
   assertEqual(allItemIdsBefore(new Date(2027, 0, 4, 12)), []);
   assertEqual(allItemIdsBefore(new Date(2026, 11, 1)), []);
-  assertEqual(allItemIdsBefore(new Date(2028, 5, 1)).length, 832);
+  assertEqual(allItemIdsBefore(new Date(2028, 5, 1)).length, 780);
 });

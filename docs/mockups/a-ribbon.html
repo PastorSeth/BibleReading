@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mockup A — Ribbon</title>
+<style>
+  :root {
+    --paper: #F3F5F1; --ink: #1E2A24; --muted: #66716B; --rule: #D9DED8; --ribbon: #8C1C2C; --ribbon-soft: #E7D3D3;
+    --serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
+    color-scheme: light;
+  }
+  :root.dark { --paper: #121815; --ink: #E4E9E4; --muted: #8D9891; --rule: #2A332E; --ribbon: #C4485A; --ribbon-soft: #3A2328; color-scheme: dark; }
+  @media (prefers-color-scheme: dark) { :root:not(.light) { --paper: #121815; --ink: #E4E9E4; --muted: #8D9891; --rule: #2A332E; --ribbon: #C4485A; --ribbon-soft: #3A2328; color-scheme: dark; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--serif); -webkit-font-smoothing: antialiased; }
+  .app { max-width: 430px; margin: 0 auto; padding: 20px 22px 40px; }
+  header { display: flex; justify-content: space-between; align-items: baseline; }
+  .title { font-size: 15px; letter-spacing: .01em; color: var(--muted); }
+  .sync { font-size: 13px; font-style: italic; color: var(--muted); }
+  .sync::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--ribbon); margin-right: 6px; vertical-align: 2px; }
+  h1 { font-weight: 400; font-size: 30px; line-height: 1.15; margin: 28px 0 2px; }
+  .when { color: var(--muted); font-style: italic; font-size: 16px; margin: 0 0 22px; }
+  ol { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule); }
+  li { position: relative; display: flex; align-items: stretch; border-bottom: 1px solid var(--rule); min-height: 104px; }
+  .text { flex: 1; padding: 18px 0 18px; }
+  .label { font-style: italic; font-size: 15px; color: var(--muted); display: flex; gap: 10px; align-items: center; }
+  .ref { font-size: 34px; line-height: 1.1; margin-top: 6px; letter-spacing: -.005em; }
+  .online { color: var(--muted); opacity: .55; display: inline-flex; }
+  .online svg { width: 15px; height: 15px; }
+  .partner { font-style: normal; font-size: 11px; width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--muted); display: inline-grid; place-items: center; color: var(--muted); }
+  .mark { width: 64px; border: 0; background: none; padding: 0; cursor: pointer; position: relative; }
+  .mark .ribbon { position: absolute; right: 14px; top: -1px; width: 22px; height: 18px; background: var(--ribbon-soft);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%); transition: height .35s cubic-bezier(.3,.7,.2,1), background .2s; }
+  .mark[aria-pressed="true"] .ribbon { height: calc(100% - 10px); background: var(--ribbon); }
+  li.memory .ref { font-size: 24px; }
+  .week { margin-top: 26px; font-size: 16px; line-height: 1.6; }
+  .week b { font-weight: 400; color: var(--ribbon); }
+  .catch { margin-top: 10px; font-style: italic; color: var(--muted); font-size: 15px; }
+  .catch a { color: inherit; }
+  nav { display: flex; justify-content: space-between; margin-top: 34px; font-size: 15px; }
+  nav a { color: var(--ink); text-decoration: none; padding: 6px 0; }
+  nav a.on { border-bottom: 2px solid var(--ribbon); }
+</style>
+</head>
+<body>
+<div class="app">
+  <header><span class="title">Bible Reading 2027</span><span class="sync">Not synced yet</span></header>
+  <h1>Monday, January 4</h1>
+  <p class="when">Week 1, day 1</p>
+  <ol>
+    <li><div class="text"><div class="label">New Testament <span class="partner" title="Anna read this">A</span> <a class="online" href="#" aria-label="Read Luke 1 online"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M9 3h4v4M13 3 7.5 8.5M11 9.5V13H3V5h3.5"/></svg></a></div><div class="ref">Luke 1</div></div><button class="mark" aria-pressed="true" aria-label="Mark Luke 1 read"><span class="ribbon"></span></button></li>
+    <li><div class="text"><div class="label">Old Testament <a class="online" href="#" aria-label="Read Genesis 1 online"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M9 3h4v4M13 3 7.5 8.5M11 9.5V13H3V5h3.5"/></svg></a></div><div class="ref">Genesis 1</div></div><button class="mark" aria-pressed="false" aria-label="Mark Genesis 1 read"><span class="ribbon"></span></button></li>
+    <li><div class="text"><div class="label">Psalm <a class="online" href="#" aria-label="Read Psalm 1 online"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M9 3h4v4M13 3 7.5 8.5M11 9.5V13H3V5h3.5"/></svg></a></div><div class="ref">Psalm 1</div></div><button class="mark" aria-pressed="false" aria-label="Mark Psalm 1 read"><span class="ribbon"></span></button></li>
+    <li class="memory"><div class="text"><div class="label">Memory verse this week</div><div class="ref">Matthew 5:1–2</div></div><button class="mark" aria-pressed="false" aria-label="Mark memory verse learned"><span class="ribbon"></span></button></li>
+  </ol>
+  <p class="week">This week you’ve read <b>1 of 15</b>. Anna has read 2.</p>
+  <p class="catch"><a href="#">3 readings to catch up</a></p>
+  <nav><a class="on" href="#">Today</a><a href="#">Week</a><a href="#">Plan</a><a href="#">Account</a></nav>
+</div>
+<script>
+  if (location.search.includes('dark')) document.documentElement.classList.add('dark');
+  if (location.search.includes('light')) document.documentElement.classList.add('light');
+  document.querySelectorAll('.mark').forEach(b => b.onclick = () => b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') !== 'true'));
+</script>
+</body>
+</html>

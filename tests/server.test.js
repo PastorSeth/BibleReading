@@ -77,8 +77,8 @@ test('server: save merges', async () => {
   const first = call({ action: 'save', username: 'Seth', token, changes: { 'w01d1-nt': { done: true, t: 2 } } });
   assertEqual(first.progress, { 'w01d1-nt': { done: true, t: 2 } });
   const second = call({ action: 'save', username: 'seth', token,
-    changes: { 'w01d1-nt': { done: false, t: 1 }, 'w01-mv': { done: true, t: 3 }, 'bogus': { done: true, t: 1 } } });
-  assertEqual(second.progress, { 'w01d1-nt': { done: true, t: 2 }, 'w01-mv': { done: true, t: 3 } });
+    changes: { 'w01d1-nt': { done: false, t: 1 }, 'w01d2-pr': { done: true, t: 3 }, 'w01-mv': { done: true, t: 3 }, 'bogus': { done: true, t: 1 } } });
+  assertEqual(second.progress, { 'w01d1-nt': { done: true, t: 2 }, 'w01d2-pr': { done: true, t: 3 } });
   assertEqual(call({ action: 'load', username: 'Seth', token }).progress, second.progress);
 });
 

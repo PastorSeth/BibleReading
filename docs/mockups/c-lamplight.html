@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mockup C — Lamplight</title>
+<style>
+  :root {
+    --bg: #191A2E; --surface: #222440; --ink: #EEEADF; --muted: #A09FB5; --gold: #E3B65C; --line: #303255;
+    --face: Optima, Candara, 'Segoe UI', 'Gill Sans', 'Noto Sans', sans-serif;
+    color-scheme: dark;
+  }
+  :root.light { --bg: #F0EFF6; --surface: #FFFFFF; --ink: #22233A; --muted: #66667E; --gold: #94650F; --line: #DCDBE8; color-scheme: light; }
+  @media (prefers-color-scheme: light) { :root:not(.dark) { --bg: #F0EFF6; --surface: #FFFFFF; --ink: #22233A; --muted: #66667E; --gold: #94650F; --line: #DCDBE8; color-scheme: light; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--face); -webkit-font-smoothing: antialiased; }
+  .app { max-width: 430px; margin: 0 auto; padding: 18px 20px 36px; text-align: center; }
+  header { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); }
+  .sync { color: var(--gold); }
+  .day { margin: 34px 0 4px; font-size: 17px; letter-spacing: .04em; color: var(--muted); }
+  .date { font-size: 30px; margin: 0 0 26px; font-weight: 400; }
+  .reading { position: relative; padding: 20px 16px 18px; margin: 0 0 12px; background: var(--surface); border-radius: 18px; }
+  .label { font-size: 14px; color: var(--muted); letter-spacing: .03em; }
+  .ref { font-size: 36px; margin: 4px 0 12px; letter-spacing: .01em; }
+  .row { display: flex; justify-content: center; align-items: center; gap: 14px; }
+  .check { border: 1.5px solid var(--gold); background: none; color: var(--gold); border-radius: 999px; font: inherit; font-size: 15px; padding: 8px 18px; min-height: 40px; cursor: pointer; }
+  .check[aria-pressed="true"] { background: var(--gold); color: var(--bg); }
+  .check[aria-pressed="true"]::before { content: '✓ '; }
+  .online { position: absolute; top: 14px; right: 16px; color: var(--muted); opacity: .5; }
+  .online svg { width: 15px; height: 15px; }
+  .partner { position: absolute; top: 12px; left: 14px; font-size: 12px; width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--gold); color: var(--gold); display: grid; place-items: center; }
+  .memory { padding: 18px 16px; border: 1px dashed var(--line); border-radius: 18px; }
+  .memory .ref { font-size: 24px; margin-bottom: 10px; }
+  .summary { margin: 22px 0 0; color: var(--muted); font-size: 15px; line-height: 1.6; }
+  .summary a { color: var(--gold); }
+  nav { display: flex; justify-content: space-around; margin-top: 28px; font-size: 14px; }
+  nav a { color: var(--muted); text-decoration: none; padding: 8px 4px; }
+  nav a.on { color: var(--ink); border-bottom: 1.5px solid var(--gold); }
+</style>
+</head>
+<body>
+<div class="app">
+  <header><span>Bible Reading 2027</span><span class="sync">Not synced yet</span></header>
+  <p class="day">Week 1, Monday</p>
+  <h1 class="date">January 4</h1>
+  <section class="reading">
+    <span class="partner" title="Anna read this">A</span>
+    <a class="online" href="#" aria-label="Read Luke 1 online"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M9 3h4v4M13 3 7.5 8.5M11 9.5V13H3V5h3.5"/></svg></a>
+    <div class="label">New Testament</div>
+    <div class="ref">Luke 1</div>
+    <div class="row"><button class="check" aria-pressed="true" aria-label="Mark Luke 1 read">Read</button></div>
+  </section>
+  <section class="reading">
+    <a class="online" href="#" aria-label="Read Genesis 1 online"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M9 3h4v4M13 3 7.5 8.5M11 9.5V13H3V5h3.5"/></svg></a>
+    <div class="label">Old Testament</div>
+    <div class="ref">Genesis 1</div>
+    <div class="row"><button class="check" aria-pressed="false" aria-label="Mark Genesis 1 read">Read</button></div>
+  </section>
+  <section class="reading">
+    <a class="online" href="#" aria-label="Read Psalm 1 online"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M9 3h4v4M13 3 7.5 8.5M11 9.5V13H3V5h3.5"/></svg></a>
+    <div class="label">Psalm</div>
+    <div class="ref">Psalm 1</div>
+    <div class="row"><button class="check" aria-pressed="false" aria-label="Mark Psalm 1 read">Read</button></div>
+  </section>
+  <section class="memory">
+    <div class="label">Memory verse this week</div>
+    <div class="ref">Matthew 5:1–2</div>
+    <div class="row"><button class="check" aria-pressed="false" aria-label="Mark memory verse learned">Learned</button></div>
+  </section>
+  <p class="summary">This week you’ve read 1 of 15. Anna has read 2.<br><a href="#">3 readings to catch up</a></p>
+  <nav><a class="on" href="#">Today</a><a href="#">Week</a><a href="#">Plan</a><a href="#">Account</a></nav>
+</div>
+<script>
+  if (location.search.includes('dark')) document.documentElement.classList.add('dark');
+  if (location.search.includes('light')) document.documentElement.classList.add('light');
+  document.querySelectorAll('.check').forEach(b => b.onclick = () => b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') !== 'true'));
+</script>
+</body>
+</html>

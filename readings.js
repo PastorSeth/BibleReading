@@ -6,7 +6,6 @@
    - OT_READINGS: F260 Old Testament, one reading a day (260).
    - PSALM_READINGS: Mon/Wed/Fri, all 150 Psalms (Psalm 119 in 7 parts).
    - PROVERBS_READINGS: Tue/Thu, all of Proverbs in 104 short portions.
-   - MEMORY_VERSES: one a week, Matthew 5–7.
    ============================================================ */
 
 function expandChapters(runs) {
@@ -85,16 +84,6 @@ const OT_READINGS = [
   "Nehemiah 7", "Nehemiah 8", "Nehemiah 9", "Nehemiah 10", "Nehemiah 11",  // week 51
   "Nehemiah 12", "Nehemiah 13", "Malachi 1", "Malachi 2", "Malachi 3–4",  // week 52
 ];
-
-const MEMORY_VERSES = [
-  '5:1-2', '5:3-4', '5:5-6', '5:7-8', '5:9-10', '5:11-12', '5:13-14', '5:15-16',
-  '5:17-18', '5:19-20', '5:21-22', '5:23-24', '5:25-26', '5:27-28', '5:29-30', '5:31-32',
-  '5:33-35', '5:36-37', '5:38-39', '5:40-42', '5:43-44', '5:45-46', '5:47-48', '6:1-2',
-  '6:3-4', '6:5-6', '6:7-8', '6:9-11', '6:12-13', '6:14-15', '6:16-18', '6:19-21',
-  '6:22-24', '6:25-26', '6:27-28', '6:29-30', '6:31-32', '6:33-34', '7:1-2', '7:3-4',
-  '7:5-6', '7:7-8', '7:9-10', '7:11-12', '7:13-14', '7:15-16', '7:17-18', '7:19-20',
-  '7:21-23', '7:24-25', '7:26-27', '7:28-29',
-].map(v => `Matthew ${v}`);
 
 const PSALM_READINGS = (() => {
   const out = [];

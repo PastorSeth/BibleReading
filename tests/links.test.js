@@ -31,7 +31,7 @@ test('links: split pieces', () => {
 
 test('links: every plan reference produces valid links', () => {
   const shape = /^https:\/\/biblia\.com\/bible\/esv\/[1-3]?[A-Za-z]+(\d+(\.\d+)?(-\d+(\.\d+)?)?)?$/;
-  [NT_READINGS, OT_READINGS, PSALM_READINGS, PROVERBS_READINGS, MEMORY_VERSES].forEach(list => {
+  [NT_READINGS, OT_READINGS, PSALM_READINGS, PROVERBS_READINGS].forEach(list => {
     list.forEach(ref => {
       const links = bibliaLinks(ref, 'esv');
       assert(links.length >= 1, `no link for ${ref}`);

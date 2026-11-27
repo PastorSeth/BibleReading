@@ -2,6 +2,8 @@
 
 *Working name; easy to change. Written 2026-11-26. Starts Monday, January 4, 2027.*
 
+> **Update 2026-11-26:** Seth removed the weekly memory verse from the app. Anything below about memory verses no longer applies. The visual direction is "The Plan Sheet" with an e-ink feel and muted accent colors (see `.impeccable/` surface brief).
+
 ## Why
 
 Seth and his wife want to read through a shared plan in 2027, each on their own phone at their own time, and be able to see each other's progress. Anyone else Seth shares it with should be able to just open it and read today's passages — tracking and accounts are extras, never a gate.

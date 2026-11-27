@@ -1,0 +1,101 @@
+{
+  "title": "Choose the look for Bible Reading 2027",
+  "question": "The roll picked the Date-Due Card. Keep it, take another, or re-roll.",
+  "options": [
+    {
+      "id": "assigned", "kind": "assigned", "label": "Date-Due Card", "kicker": "THE ROLL",
+      "lineage": "library date-due slips and rubber date stamps",
+      "thesis": "Each reading you finish is stamped with the day you read it.",
+      "palette": ["#F4F6F8", "#1C2430", "#2D4F8B", "#5B3FA6", "#2E7A57"],
+      "materials": ["rubber date stamp", "printed card stock"],
+      "viewport": "Today's three readings as rows on a date-due card; checking one stamps today's date in your ink, your partner's stamp sits beside it in theirs.",
+      "risk": "Turns into a library costume if the card frame or stamp texture gets decorative.",
+      "raised": [
+        {"from": "challenger-metro", "raise": "References are set big enough to be the interface, with no card chrome around them."},
+        {"from": "challenger-orienteering", "raise": "Stamp ink is reserved for finished readings; nothing else on screen uses it."},
+        {"from": "challenger-transit", "raise": "Each track keeps one fixed identity across Today, Week and Plan."},
+        {"from": "challenger-saville", "raise": "Every day carries its place in the sequence: day 1 of 260."},
+        {"from": "challenger-feed", "raise": "Today is one complete day; the next day is one swipe away."},
+        {"from": "challenger-specimen", "raise": "Hierarchy comes from type scale, not boxes or fills."}
+      ],
+      "html": ".impeccable/mocks/decision/assigned.html", "htmlFrame": "390x844"
+    },
+    {
+      "id": "model-pick", "kind": "pick", "label": "The Plan Sheet", "kicker": "IMPECCABLE’S PICK",
+      "lineage": "printed reading-plan checklists tucked inside a Bible",
+      "thesis": "The paper checklist you keep in your Bible, made live and shared.",
+      "palette": ["#FFFFFF", "#1A1F1C", "#0F6E6A", "#D8E6E3"],
+      "materials": ["offset print", "one spot ink"],
+      "viewport": "Today's readings on top with large tick boxes, and the whole week's grid of 15 boxes underneath for both of you.",
+      "risk": "The most familiar option here; it can slide into a plain to-do list.",
+      "html": ".impeccable/mocks/decision/model-pick.html", "htmlFrame": "390x844"
+    },
+    {
+      "id": "challenger-metro", "kind": "challenger", "catalogId": "digital-design-canon-metro-typographic-tiles",
+      "label": "Metro Tiles", "verdict": "declined", "lineage": "Windows Phone Metro",
+      "thesis": "Giant cropped type and flat color tiles as the whole interface.",
+      "palette": ["#000000", "#1BA1E2", "#FFFFFF"], "materials": ["flat tiles", "light lowercase type"],
+      "viewport": "Readings as color tiles on black.", "risk": "Reads as a phone OS, not a Bible companion.",
+      "case": "Fuses poorly: readers don't recognize themselves in it and tiles hide the references.",
+      "kept": "Type itself is the interface."
+    },
+    {
+      "id": "challenger-orienteering", "kind": "challenger", "catalogId": "notation-diagram-systems-orienteering-map",
+      "label": "Orienteering Map", "verdict": "declined", "lineage": "ISOM orienteering maps",
+      "thesis": "The year as a course with one purple leg for today.",
+      "palette": ["#FFFFFF", "#9C3FB0", "#8A5A2B", "#F5D24B"], "materials": ["contour lines", "course overprint"],
+      "viewport": "Weeks as controls on a course.", "risk": "A sport metaphor most readers won't know.",
+      "case": "Fuses poorly: unfamiliar to the audience and adds a map to a simple list.",
+      "kept": "One ink reserved for the active leg."
+    },
+    {
+      "id": "challenger-transit", "kind": "challenger", "catalogId": "wayfinding-cartography-signage-midnight-transit-diagram",
+      "label": "Transit Diagram", "verdict": "declined", "lineage": "metro line diagrams",
+      "thesis": "Three tracks as three colored lines with a station for each day.",
+      "palette": ["#14214A", "#E0453A", "#2F6FD6", "#E8A93A"], "materials": ["enamel", "line diagram"],
+      "viewport": "NT, OT and wisdom as lines meeting at today.", "risk": "Turns a three-item list into a diagram to decode.",
+      "case": "Clear for the year view but slower than a list for today, and not the readers' world.",
+      "kept": "Each line keeps one fixed identity everywhere."
+    },
+    {
+      "id": "challenger-saville", "kind": "challenger", "catalogId": "brand-identity-canon-saville-catalog-sleeve",
+      "label": "Catalog Sleeve", "verdict": "declined", "lineage": "Factory Records catalog design",
+      "thesis": "Every day a catalog number on matte black.",
+      "palette": ["#111111", "#FFFFFF", "#E5484D"], "materials": ["matte black", "hairline plot"],
+      "viewport": "A coded strip for each day.", "risk": "Hides the references behind codes.",
+      "case": "Fuses poorly: coded labels fight a glance-and-go task.",
+      "kept": "A strict running sequence number."
+    },
+    {
+      "id": "challenger-feed", "kind": "challenger", "catalogId": "pop-culture-shelf-vertical-video-feed-surface",
+      "label": "Vertical Feed", "verdict": "declined", "lineage": "full-screen video feeds",
+      "thesis": "One day fills the screen; swipe for the next.",
+      "palette": ["#000000", "#FFFFFF"], "materials": ["full-bleed media", "action rail"],
+      "viewport": "Today full screen with a rail of actions.", "risk": "Borrows the feel of an attention app the product opposes.",
+      "case": "Fuses poorly: invites scrolling when the goal is closing the app and opening a Bible.",
+      "kept": "One complete state per screen."
+    },
+    {
+      "id": "challenger-specimen", "kind": "challenger", "catalogId": "variable-font-specimen",
+      "label": "Type Specimen", "verdict": "declined", "lineage": "variable font specimens",
+      "thesis": "References as giant specimen type.",
+      "palette": ["#FAFAF7", "#111111", "#3355FF"], "materials": ["paper", "ink"],
+      "viewport": "One reference huge, the rest small.", "risk": "A type demo, not a tool.",
+      "case": "Fuses poorly: nothing in it is about reading together.",
+      "kept": "Hierarchy by scale alone."
+    }
+  ],
+  "reroll": {"registers": ["safer", "bolder"]},
+  "buildPath": {"value": "code"},
+  "canon": true,
+  "canonCard": {
+    "kind": "canon", "label": "The category standard",
+    "thesis": "A clean phone checklist app, done well.",
+    "palette": ["#F2F2F7", "#000000", "#007AFF"],
+    "materials": ["grouped lists", "system checkmarks"],
+    "viewport": "A grouped list of today's readings with system checkmarks.",
+    "risk": "Indistinguishable from any to-do app by design.",
+    "html": ".impeccable/mocks/decision/canon.html", "htmlFrame": "390x844"
+  },
+  "steer": true
+}

@@ -26,7 +26,7 @@ const PROGRESS_HEADERS = ['key', 'progress', 'updated'];
 const MAX_TRIES = 5;
 const LOCK_MS = 15 * 60 * 1000;
 const MAX_TOKENS = 10;
-const ITEM_ID = /^w\d\d(d[1-5]-(nt|ot|ps|pr)|-mv)$/;
+const ITEM_ID = /^w\d\dd[1-5]-(nt|ot|ps|pr)$/;
 
 function doPost(e) {
   let result;
