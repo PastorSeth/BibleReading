@@ -209,7 +209,7 @@ A heavy-bordered square you press like a pen.
 ### Week Grid
 - 3 tracks by Mon to Fri. Cells: 28px tall, 1.5px Faint Grey border; today's column has ink borders and an ink, bold day label.
 - Your half fills solid with the track ink; the partner half shows that partner's halftone. With no partners the cell is whole and the key is hidden.
-- With 2+ partners a "Showing:" select appears beside the heading, and a 14px totals line lists everyone. With one partner there is no totals line.
+- With 2+ partners a row of name tabs sits under the heading: boxed names (15px) each with its halftone swatch, the chosen one filled in ink. One tap picks whose week sits beside yours; a long row scrolls sideways. With one partner there are no tabs. (There is no totals line; the tabs replaced it and the old "Showing:" dropdown.)
 
 ### Buttons
 - **Shape:** square (0px), 2px ink border, 10px by 16px padding, 16px bold.

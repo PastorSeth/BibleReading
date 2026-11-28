@@ -216,23 +216,21 @@ function weekGrid(year, week, now, progress, partners, settings) {
     }),
   ]));
 
-  const counts = partners.length >= 2
-    ? h('p', { class: 'counts', text: [`You ${weekDaysDone(progress, year, week, tracks)} of 5`]
-      .concat(partners.map(p => `${p.name} ${weekDaysDone(p.progress, year, week, tracks)} of 5`)).join(', ') })
-    : null;
-  const picker = partners.length >= 2
-    ? h('label', { class: 'switch-label' }, 'Showing ',
-      h('select', { class: 'partner-switch', 'aria-label': 'Whose week to show' },
-        partners.map((p, i) => h('option', { value: String(i), selected: i === selectedPartner, text: p.name }))))
+  // With 2+ partners, a row of name tabs picks whose week sits beside yours.
+  const tabs = partners.length >= 2
+    ? h('div', { class: 'name-tabs', role: 'group', 'aria-label': 'Whose week to show' }, partners.map((p, i) =>
+      h('button', { type: 'button', class: `name-tab${i === selectedPartner ? ' on' : ''}`, dataset: { partner: String(i) },
+        'aria-pressed': String(i === selectedPartner) }, h('i', { class: `swatch ${p.pattern}` }), p.name)))
     : null;
   const key = shown
     ? h('div', { class: 'key' }, h('span', null, h('i', { class: 'solid' }), 'You'), h('span', null, h('i', { class: `swatch ${shown.pattern}` }), shown.name))
     : null;
 
   return h('section', { class: 'week-grid' },
-    h('div', { class: 'grid-head' }, h('h2', { text: 'This week' }), picker),
+    h('div', { class: 'grid-head' }, h('h2', { text: 'This week' })),
+    tabs,
     h('div', { class: 'grid' }, head, rows),
-    key, counts);
+    key);
 }
 
 function previewList(year, week, weekday, settings) {
@@ -1009,6 +1007,13 @@ function boot() {
     if (remove) return whileWaiting(remove, () => removePartner(remove.dataset.remove)).then(render);
     const addBack = e.target.closest('[data-addback]');
     if (addBack) return whileWaiting(addBack, () => addPartner(addBack.dataset.addback)).then(render);
+    const nameTab = e.target.closest('.name-tab');
+    if (nameTab) {
+      selectedPartner = Number(nameTab.dataset.partner);
+      render();
+      const again = document.querySelector(`.name-tab[data-partner="${nameTab.dataset.partner}"]`);
+      return again && again.focus();
+    }
     const account = getAccount();
     if (e.target.closest('.reorder-start')) { reordering = true; return render(); }
     if (e.target.closest('.reorder-done')) { reordering = false; return render(); }
@@ -1035,7 +1040,6 @@ function boot() {
   });
   app.addEventListener('change', e => {
     if (['showLinks', 'hideBehind', 'ntOnly'].includes(e.target.name)) saveSettings({ [e.target.name]: e.target.checked });
-    else if (e.target.classList.contains('partner-switch')) selectedPartner = Number(e.target.value);
     else return;
     render();
   });

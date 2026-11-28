@@ -100,7 +100,12 @@ main > .readings:first-child { margin-top: 18px; }
 
 /* ---------- This week grid ---------- */
 .grid-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
-.switch-label { font-size: 15px; color: var(--ink-2); display: inline-flex; align-items: center; gap: 6px; }
+/* Name tabs: with 2+ partners, pick whose week sits beside yours. A long list scrolls sideways. */
+.name-tabs { display: flex; gap: 6px; margin: 2px 0 12px; overflow-x: auto; scrollbar-width: none; }
+.name-tabs::-webkit-scrollbar { display: none; }
+.name-tab { flex: none; font: inherit; font-size: 15px; display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; background: none; color: var(--ink); border: 1.5px solid var(--ink); border-radius: 0; cursor: pointer; }
+.name-tab.on { background: var(--ink); color: var(--paper); font-weight: 700; }
+.name-tab.on .swatch { --c: var(--paper); outline-color: var(--paper); }
 .grid { display: grid; grid-template-columns: 88px repeat(5, 1fr); gap: 5px; align-items: center; font-size: 14px; color: var(--ink-2); }
 .grid .day { text-align: center; }
 .grid .day.now { color: var(--ink); font-weight: 700; }
@@ -113,7 +118,6 @@ main > .readings:first-child { margin-top: 18px; }
 .key { display: flex; gap: 18px; margin-top: 10px; font-size: 14px; color: var(--ink-2); }
 .key span { display: inline-flex; align-items: center; gap: 6px; }
 .key i { width: 12px; height: 12px; }
-.counts { font-size: 15px; color: var(--ink-2); margin-top: 8px; }
 .catch { margin-top: 20px; font-size: 16px; }
 
 /* ---------- Week, plan, previews ---------- */
@@ -152,7 +156,6 @@ details[open] summary .count { color: var(--ink); font-weight: 700; }
 .field { display: grid; gap: 6px; margin-bottom: 14px; font-size: 15px; color: var(--ink-2); }
 .field input, .field select { font: inherit; font-size: 17px; color: var(--ink); background: var(--field); border: 2px solid var(--ink); border-radius: 0; padding: 10px 12px; width: 100%; -webkit-appearance: none; appearance: none; }
 .field select { background-image: linear-gradient(45deg, transparent 50%, var(--ink) 50%), linear-gradient(135deg, var(--ink) 50%, transparent 50%); background-position: calc(100% - 20px) 50%, calc(100% - 14px) 50%; background-size: 6px 6px; background-repeat: no-repeat; padding-right: 36px; }
-.switch-label select { font: inherit; color: var(--ink); background: var(--field); border: 1.5px solid var(--ink); border-radius: 0; padding: 6px 10px; }
 .check-field { display: flex; align-items: center; gap: 12px; font-size: 17px; padding: 6px 0; }
 .check-field input { width: 22px; height: 22px; margin: 0; }
 .actions { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }

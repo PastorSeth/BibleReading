@@ -83,7 +83,7 @@ test('app: no partners hides partner bits', () => {
   const el = renderToday(new Date(2027, 0, 4, 8), {}, SETTINGS, NO_SYNC);
   assertEqual(el.querySelectorAll('.partners .who').length, 0);
   assertEqual(el.querySelectorAll('.grid .her').length, 0);
-  assertEqual(el.querySelectorAll('.partner-switch').length, 0);
+  assertEqual(el.querySelectorAll('.name-tabs').length, 0);
 });
 
 test('app: one partner shows names', () => {
@@ -92,9 +92,8 @@ test('app: one partner shows names', () => {
   assertIncludes(rowFor(el, 'Luke 1').textContent, 'Anna');
   assert(!rowFor(el, 'Genesis 1').textContent.includes('Anna'), 'Anna has not read Genesis 1');
   assert(!el.textContent.includes('Wait'), 'waiting partners are not shown');
-  assertEqual(el.querySelectorAll('.partner-switch').length, 0);
+  assertEqual(el.querySelectorAll('.name-tabs').length, 0, 'no tabs with a single partner');
   assertEqual(el.querySelectorAll('.grid .her.on').length, 1);
-  assertEqual(el.querySelectorAll('.counts').length, 0, 'no score line with a single partner');
 });
 
 test('app: many partners use initials and +N', () => {
@@ -103,8 +102,28 @@ test('app: many partners use initials and +N', () => {
     withPartners(partner('Anna', ids), partner('Mark', ids), partner('Jo', ids), partner('Zed', ids)));
   const row = rowFor(el, 'Luke 1');
   assertEqual([...row.querySelectorAll('.who')].map(w => w.textContent), ['A', 'M', 'J', '+1']);
-  assert(el.querySelector('.partner-switch'), 'switch shown with 2+ partners');
-  assertIncludes(el.textContent, 'You 0 of 5, Anna 0 of 5');
+  assertEqual([...el.querySelectorAll('.name-tabs .name-tab')].map(b => b.textContent), ['Anna', 'Mark', 'Jo', 'Zed'], 'tabs with 2+ partners');
+});
+
+test('app: name tabs pick whose week the grid compares', () => {
+  const ids = done('2027-w01d1-nt');
+  const state = withPartners(partner('Anna', ids), partner('Mark', {}));
+  const saved = selectedPartner;
+  try {
+    selectedPartner = 1;
+    const el = renderToday(new Date(2027, 0, 4, 8), {}, SETTINGS, state);
+    const tabs = [...el.querySelectorAll('.name-tab')];
+    assertEqual(tabs.map(b => b.dataset.partner), ['0', '1']);
+    assertEqual(tabs.map(b => b.getAttribute('aria-pressed')), ['false', 'true']);
+    assertEqual(tabs.map(b => b.classList.contains('on')), [false, true]);
+    assertEqual(el.querySelector('.name-tabs').getAttribute('aria-label'), 'Whose week to show');
+    assert(tabs[0].querySelector('.swatch.pat-dots') && tabs[1].querySelector('.swatch.pat-diag'), 'each tab shows its pattern');
+    assertEqual(el.querySelectorAll('.grid .her.on').length, 0, 'Mark has read nothing');
+    assertIncludes(el.querySelector('.key').textContent, 'Mark');
+    assertEqual(el.querySelectorAll('.counts, .partner-switch').length, 0, 'tabs replace the dropdown and the counts line');
+  } finally {
+    selectedPartner = saved;
+  }
 });
 
 test('app: partner names are text, not markup', () => {
