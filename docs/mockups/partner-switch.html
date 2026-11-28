@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mockups: switching partners on Today</title>
+<!-- Uses the app's real stylesheet and code (the app doesn't start here: there's no #app),
+     so the grid, patterns and fonts are exactly what the app draws. Pretend partners. -->
+<link rel="stylesheet" href="../../style.css">
+<style>
+  body { background: #D6D7D1; margin: 0; padding: 24px; }
+  .board { display: grid; grid-template-columns: repeat(2, 360px); gap: 28px; justify-content: center; }
+  .frame { background: var(--paper); border: 2px solid var(--ink); padding: 4px 20px 22px; }
+  .tag { font-family: var(--face); font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--pen, #96402F); margin: 12px 0 0; }
+  .how { font-size: 14px; color: var(--ink-2); margin: 4px 0 0; min-height: 40px; }
+  .frame h2 { margin-top: 14px; }
+
+  /* 1 · Name tabs */
+  .name-tabs { display: flex; gap: 6px; margin: 2px 0 12px; }
+  .name-tabs button { font: inherit; font-size: 15px; display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; background: none; color: var(--ink); border: 1.5px solid var(--ink); border-radius: 0; cursor: pointer; }
+  .name-tabs button.on { background: var(--ink); color: var(--paper); font-weight: 700; }
+  .name-tabs button.on .swatch { outline-color: var(--paper); --c: var(--paper); }
+
+  /* 2 · Tap a name in the counts line */
+  .count-switch { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin-top: 10px; font-size: 15px; color: var(--ink-2); }
+  .count-switch button { font: inherit; display: inline-flex; align-items: center; gap: 6px; padding: 2px 0; background: none; border: 0; color: var(--ink-2); cursor: pointer; text-decoration: underline dotted; text-underline-offset: 4px; }
+  .count-switch button.on { color: var(--ink); font-weight: 700; text-decoration: underline solid 2px; }
+  .hint { font-size: 13px; color: var(--ink-2); margin-top: 4px; }
+
+  /* 5 · Together grid */
+  .together-head { display: flex; justify-content: space-between; align-items: baseline; margin: 22px 0 8px; }
+  .together-head h3 { font-family: var(--display); font-size: 17px; margin: 0; }
+  .together-head span { font-size: 13px; color: var(--ink-2); }
+  .together { display: grid; grid-template-columns: 88px repeat(5, 1fr); gap: 5px; align-items: center; font-size: 14px; color: var(--ink-2); }
+  .together .day { text-align: center; }
+  .together .day.now { color: var(--ink); font-weight: 700; }
+  .together .who { display: flex; align-items: center; gap: 6px; padding: 4px 6px; margin-left: -6px; background: none; border: 0; font: inherit; color: var(--ink); cursor: pointer; text-align: left; border-left: 3px solid transparent; }
+  .together .who.on { border-left-color: var(--ink); font-weight: 700; }
+  .together .who.me { cursor: default; }
+  .together .sq { height: 22px; border: 1.5px solid var(--faint); }
+  .together .sq.now { border-color: var(--ink); }
+  .together .sq i { display: block; height: 100%; --c: var(--ink-2); }
+</style>
+</head>
+<body>
+<div class="board" id="board"></div>
+
+<script src="../../readings.js"></script>
+<script src="../../plan.js"></script>
+<script src="../../links.js"></script>
+<script src="../../store.js"></script>
+<script src="../../sync-config.js"></script>
+<script src="../../sync.js"></script>
+<script src="../../gospel.js"></script>
+<script src="../../app.js"></script>
+<script>
+  // Wednesday of week 2, 2027. You've read Monday and Tuesday and today's New Testament.
+  const now = new Date(2027, 0, 13, 9), year = 2027, week = 2, today = 3;
+  const mark = (days, tracks) => {
+    const out = {};
+    days.forEach(d => readingsFor(year, week, d).forEach((r, i) => { if (!tracks || tracks[i]) out[r.id] = { done: true, t: 1 }; }));
+    return out;
+  };
+  const progress = Object.assign(mark([1, 2]), mark([3], [true, false, false]));
+  const state = { status: 'synced', requests: [], partners: [
+    { username: 'Anna', status: 'mutual', progress: mark([1, 2, 3]) },
+    { username: 'Mark', status: 'mutual', progress: mark([1], [true, true, false]) },
+    { username: 'Jo', status: 'mutual', progress: mark([1, 2]) },
+  ] };
+  const partners = mutualPartners(state);
+  const settings = { showLinks: true };
+  const days = [1, 2, 3, 4, 5];
+
+  // The detailed grid as the app draws it (you, solid; the chosen partner, their pattern).
+  function grid(shown) {
+    selectedPartner = partners.indexOf(shown);
+    return weekGrid(year, week, now, progress, partners, settings).querySelector('.grid');
+  }
+  const key = shown => h('div', { class: 'key' }, h('span', null, h('i', { class: 'solid' }), 'You'),
+    h('span', null, h('i', { class: `swatch ${shown.pattern}` }), shown.name));
+  const dayDone = (p, d) => readingsFor(year, week, d).every(r => isDone(p, r.id));
+
+  const variants = [
+    ['Now', 'The dropdown above the grid, and everyone’s count underneath.', () => {
+      selectedPartner = chosen[0];
+      const section = weekGrid(year, week, now, progress, partners, settings);
+      section.querySelector('select').addEventListener('change', e => { chosen[0] = Number(e.target.value); draw(); });
+      return section;
+    }],
+    ['1 · Name tabs', 'One tap on a name. Every partner is in view; past four or so the row scrolls sideways.', () => {
+      const shown = partners[chosen[1]];
+      return h('section', { class: 'week-grid' }, h('h2', { text: 'This week' }),
+        h('div', { class: 'name-tabs', role: 'tablist' }, partners.map((p, i) => {
+          const b = h('button', { type: 'button', role: 'tab', 'aria-selected': String(i === chosen[1]), class: i === chosen[1] ? 'on' : null },
+            h('i', { class: `swatch ${p.pattern}` }), p.name);
+          b.addEventListener('click', () => { chosen[1] = i; draw(); });
+          return b;
+        })),
+        grid(shown), key(shown));
+    }],
+    ['2 · Tap a name in the counts', 'The counts line is the switch. No extra row, but it is less obvious the names can be tapped.', () => {
+      const shown = partners[chosen[2]];
+      return h('section', { class: 'week-grid' }, h('h2', { text: 'This week' }), grid(shown),
+        h('p', { class: 'count-switch' }, h('span', null, h('b', { text: 'You' }), ` ${weekDaysDone(progress, year, week)} of 5`),
+          partners.map((p, i) => {
+            const b = h('button', { type: 'button', class: i === chosen[2] ? 'on' : null, 'aria-pressed': String(i === chosen[2]) },
+              h('i', { class: `swatch ${p.pattern}` }), `${p.name} ${weekDaysDone(p.progress, year, week)} of 5`);
+            b.addEventListener('click', () => { chosen[2] = i; draw(); });
+            return b;
+          })),
+        h('p', { class: 'hint', text: 'Tap a name to compare.' }));
+    }],
+    ['5 · Together grid', 'Everyone at a glance: a square fills when that person has read the whole day. Tap a name to compare them above.', () => {
+      const shown = partners[chosen[3]];
+      const people = [{ name: 'You', progress, me: true }].concat(partners);
+      const rows = people.map((p, i) => {
+        const who = h('button', { type: 'button', class: `who${p.me ? ' me' : ''}${p === shown ? ' on' : ''}`, 'aria-pressed': p.me ? null : String(p === shown) },
+          h('i', { class: `swatch ${p.me ? 'solid' : p.pattern}` }), p.name);
+        if (!p.me) who.addEventListener('click', () => { chosen[3] = i - 1; draw(); });
+        return [who, days.map(d => h('span', { class: `sq${d === today ? ' now' : ''}` }, dayDone(p.progress, d) ? h('i', { class: p.me ? 'solid' : p.pattern }) : null))];
+      });
+      return h('section', { class: 'week-grid' }, h('h2', { text: 'This week' }), grid(shown), key(shown),
+        h('div', { class: 'together-head' }, h('h3', { text: 'Together' }), h('span', { text: 'Tap a name to compare' })),
+        h('div', { class: 'together' }, h('span'), days.map(d => h('span', { class: `day${d === today ? ' now' : ''}`, text: dayName(dateFor(year, week, d)) })), rows));
+    }],
+  ];
+  const chosen = [0, 0, 0, 0];
+
+  function draw() {
+    const board = document.getElementById('board');
+    board.replaceChildren(...variants.map(([tag, how, build]) =>
+      h('div', { class: 'frame' }, h('p', { class: 'tag', text: tag }), h('p', { class: 'how', text: how }), build())));
+  }
+  draw();
+</script>
+</body>
+</html>
