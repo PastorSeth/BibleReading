@@ -173,7 +173,7 @@ test('app: account forms when sync on', () => withEndpoint('https://example.test
 test('app: signed-in account lists partners and requests', () => withEndpoint('https://example.test/exec', '', () => {
   const state = { status: 'synced', partners: [partner('Anna'), partner('Mark', undefined, 'waiting')], requests: ['Jo'] };
   const text = renderAccount(SETTINGS, { username: 'Seth', token: 't' }, state).textContent;
-  ['Seth', 'Anna', 'Mark', 'Jo', 'Add back', 'Sign out'].forEach(s => assertIncludes(text, s));
+  ['Seth', 'Anna', 'Mark', 'Partner requests', '1 person added you', 'Sign out'].forEach(s => assertIncludes(text, s));
 }));
 
 test('app: sync marker', () => {
@@ -438,7 +438,8 @@ test('waiting: every server button says what it is doing', () => withEndpoint('h
   const w = sel => { const b = inside.querySelector(sel); return [b.dataset.wait, b.dataset.waitLabel]; };
   assertEqual(w('form.add-partner button[type=submit]'), ['addPartner', 'Adding']);
   assertEqual(w('[data-remove="Anna"]'), ['remove:Anna', 'Removing']);
-  assertEqual(w('[data-addback="Jo"]'), ['addback:Jo', 'Adding']);
+  const requests = renderRequests({ username: 'Seth', token: 't' }, state);
+  assertEqual([requests.querySelector('[data-addback="Jo"]').dataset.wait, requests.querySelector('[data-addback="Jo"]').dataset.waitLabel], ['addback:Jo', 'Adding']);
   assertEqual(w('.signout'), ['signout', 'Signing out']);
 }));
 
@@ -656,4 +657,84 @@ test('maps: the page walks through the four steps, with an example and its sourc
   assertIncludes(source.textContent, 'Guide to Personal Worship Using “MAPS”');
   assertIncludes(page.querySelector('.source').textContent, 'McLean Bible Church');
   assert(page.querySelector('.source') === page.querySelector('main').lastElementChild, 'the source is the last thing on the page');
+});
+
+// Partners: the order and dismissed requests are kept on this phone.
+const ME = { username: 'Seth', token: 't' };
+
+test('partners: the saved order and dismissals shape what every screen sees', () => withCleanStore(() => {
+  savePartnerOrder('Seth', ['mark', 'anna']);
+  dismissRequest('Seth', 'Al');
+  const state = { status: 'synced', partners: [partner('Anna'), partner('Mark')], requests: ['Jo', 'Al'] };
+  const shaped = shapePartners(state, ME);
+  assertEqual(shaped.partners.map(p => p.username), ['Mark', 'Anna']);
+  assertEqual(shaped.requests, ['Jo']);
+  assertEqual(shaped.dismissed, ['Al'], 'dismissed requests that are still out there');
+  assertEqual(mutualPartners(shaped).map(p => [p.name, p.pattern]), [['Mark', 'pat-dots'], ['Anna', 'pat-diag']]);
+  assertEqual(shapePartners(state, null), state, 'signed out: unchanged');
+}));
+
+test('partners: moving a partner up or down', () => {
+  assertEqual(movedOrder(['Anna', 'Mark', 'Jo'], 'Mark', -1), ['mark', 'anna', 'jo']);
+  assertEqual(movedOrder(['Anna', 'Mark', 'Jo'], 'Mark', 1), ['anna', 'jo', 'mark']);
+  assertEqual(movedOrder(['Anna', 'Mark'], 'Anna', -1), ['anna', 'mark'], 'the top one stays put');
+  assertEqual(movedOrder(['Anna', 'Mark'], 'Mark', 1), ['anna', 'mark'], 'the bottom one stays put');
+});
+
+test('partners: the account page links to requests instead of listing them', () => withEndpoint('https://example.test/exec', '', () => {
+  const page = requests => renderAccount(SETTINGS, ME, { status: 'synced', partners: [partner('Anna')], requests });
+  const row = page(['Jo', 'Al']).querySelector('a.extras-row[href="#/requests"]');
+  assertEqual(row.querySelector('.row-title').textContent, 'Partner requests');
+  assertEqual(row.querySelector('.row-detail').textContent, '2 people added you');
+  assertEqual(page(['Jo']).querySelector('a[href="#/requests"] .row-detail').textContent, '1 person added you');
+  assertEqual(page([]).querySelector('a[href="#/requests"] .row-detail').textContent, 'No requests right now');
+  assert(!page(['Jo']).querySelector('[data-addback]'), 'no Add back on the account page');
+}));
+
+test('partners: Change order shows up and down buttons, then Done', () => withEndpoint('https://example.test/exec', '', () => {
+  const state = { status: 'synced', partners: [partner('Anna'), partner('Mark'), partner('Jo', undefined, 'waiting')], requests: [] };
+  const normal = renderAccount(SETTINGS, ME, state);
+  assertEqual(normal.querySelector('button.reorder-start').textContent, 'Change order');
+  assertEqual(normal.querySelectorAll('[data-move]').length, 0);
+  const one = renderAccount(SETTINGS, ME, { status: 'synced', partners: [partner('Anna')], requests: [] });
+  assert(!one.querySelector('button.reorder-start'), 'nothing to order with one partner');
+  const ordering = renderAccount(SETTINGS, ME, state, 0, false, true);
+  const ups = [...ordering.querySelectorAll('button[data-move="up"]')];
+  const downs = [...ordering.querySelectorAll('button[data-move="down"]')];
+  assertEqual(ups.map(b => b.dataset.name), ['Anna', 'Mark', 'Jo']);
+  assertEqual([ups[0].disabled, ups[1].disabled, downs[1].disabled, downs[2].disabled], [true, false, false, true]);
+  assertEqual(ups[1].getAttribute('aria-label'), 'Move Mark up');
+  assertEqual(ordering.querySelectorAll('[data-remove]').length, 0, 'no Remove while ordering');
+  assertEqual(ordering.querySelector('button.reorder-done').textContent, 'Done');
+  assert(!ordering.querySelector('button.reorder-start'));
+}));
+
+test('requests: the page lists requests with Add back and Dismiss', () => withEndpoint('https://example.test/exec', '', () => {
+  const page = renderRequests(ME, { status: 'synced', partners: [], requests: ['Jo'], dismissed: ['Al'] });
+  assertEqual(page.querySelector('h1').textContent, 'Partner requests');
+  assertEqual(page.querySelector('a.back').getAttribute('href'), '#/account');
+  assertEqual(page.querySelector('[data-addback="Jo"]').textContent, 'Add back');
+  assertEqual(page.querySelector('button[data-dismiss="Jo"]').textContent, 'Dismiss');
+  assertIncludes(page.querySelector('.dismissed-note').textContent, 'You dismissed 1 request.');
+  assertEqual(page.querySelector('button.undismiss').textContent, 'Show it again');
+  const two = renderRequests(ME, { status: 'synced', partners: [], requests: [], dismissed: ['Al', 'Bo'] });
+  assertIncludes(two.querySelector('.dismissed-note').textContent, 'You dismissed 2 requests.');
+  assertEqual(two.querySelector('button.undismiss').textContent, 'Show them again');
+  assertIncludes(two.querySelector('main').textContent, 'No one is waiting on you right now.');
+  const none = renderRequests(ME, { status: 'synced', partners: [], requests: [] });
+  assertEqual(none.querySelector('.dismissed-note'), null);
+  const loading = renderRequests(ME, { status: 'synced', loading: true, partners: [], requests: [] });
+  assertIncludes(loading.querySelector('.loading').textContent, 'Checking for requests');
+  assertIncludes(renderRequests(null, NO_SYNC).querySelector('main').textContent, 'Sign in');
+  assertEqual(parseRoute('#/requests'), { name: 'requests' });
+  assertEqual(tabBar({ name: 'requests' }, new Date(2027, 0, 6)).querySelector('.on').textContent, 'Account');
+}));
+
+test('requests: opening the requests page asks the server for fresh ones', async () => {
+  const asked = [];
+  await withFakeServer(body => { asked.push(body.action); return happyServer()(body); }, async () => {
+    saveAccount({ username: 'Seth', token: 'tok' });
+    await screenOpened('requests');
+    assertEqual(asked, ['load']);
+  });
 });

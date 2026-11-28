@@ -182,6 +182,20 @@ details[open] summary .count { color: var(--ink); font-weight: 700; }
 .people li { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--rule); font-size: 16px; }
 .people .name { font-weight: 700; }
 .people li > :last-child { margin-left: auto; }
+/* Partners: Change order shows arrows in place of each row's status and Remove. */
+.people li.ordering { padding: 8px 0; }
+.people .move { display: flex; gap: 8px; }
+.icon-btn { width: 40px; height: 40px; display: grid; place-items: center; padding: 0; background: none; color: var(--ink); border: 1.5px solid var(--ink); border-radius: 0; cursor: pointer; }
+.icon-btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.icon-btn:disabled { border-color: var(--rule); color: var(--rule); cursor: default; }
+.order-actions { display: flex; justify-content: flex-end; margin: 6px 0 14px; }
+.requests-menu { border-top: 1px solid var(--rule); margin: 4px 0 22px; }
+.requests .intro { margin-top: 16px; }
+.requests .people, .requests .loading { margin-top: 16px; }
+.request-actions { display: flex; align-items: center; gap: 4px; }
+.requests .empty { margin-top: 18px; }
+.dismissed-note { margin-top: 18px; font-size: 15px; }
+.dismissed-note .text-btn { padding: 0; font-size: 15px; color: var(--ink-2); }
 .add-partner { display: grid; grid-template-columns: 1fr auto; gap: 0 10px; align-items: end; border-top: 0 !important; margin-top: 0 !important; padding-top: 0 !important; }
 .add-partner .field { margin-bottom: 0; }
 .add-partner .error { grid-column: 1 / -1; }

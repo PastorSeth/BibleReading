@@ -20,6 +20,8 @@ const ICONS = {
   extras: ['0 0 24 24', '<circle cx="12" cy="12" r="9"/><circle cx="8" cy="12" r="0.9"/><circle cx="12" cy="12" r="0.9"/><circle cx="16" cy="12" r="0.9"/>'],
   prev: ['0 0 24 24', '<path d="M15 5l-7 7 7 7"/>'],
   next: ['0 0 24 24', '<path d="M9 5l7 7-7 7"/>'],
+  up: ['0 0 24 24', '<path d="M5 15l7-7 7 7"/>'],
+  down: ['0 0 24 24', '<path d="M5 9l7 7 7-7"/>'],
 };
 
 const ERROR_MESSAGES = {
@@ -38,6 +40,7 @@ const ERROR_MESSAGES = {
 
 let selectedPartner = 0;
 let confirmingCatchUp = false; // the "Catch me up" confirm step is showing
+let reordering = false; // the Account page's "Change order" view is showing
 
 /* ---------- Small DOM helpers ---------- */
 
@@ -94,7 +97,7 @@ function parseRoute(hash) {
   if (planYear) return { name: 'plan', year: Math.max(FIRST_YEAR, Number(planYear[1])) };
   const printYear = path.match(/^\/print\/(\d{4})$/);
   if (printYear) return { name: 'print', year: Math.max(FIRST_YEAR, Number(printYear[1])) };
-  if (['/plan', '/catchup', '/account', '/extras', '/print', '/about', '/gospel', '/hear', '/maps'].includes(path)) return { name: path.slice(1) };
+  if (['/plan', '/catchup', '/account', '/extras', '/print', '/about', '/gospel', '/hear', '/maps', '/requests'].includes(path)) return { name: path.slice(1) };
   return { name: 'today' };
 }
 
@@ -114,6 +117,27 @@ function planRange(year) {
 }
 
 /* ---------- Partners ---------- */
+
+// The sync state as this phone shows it: partners in the order saved on this
+// phone, and requests you've dismissed here set aside (as "dismissed").
+function shapePartners(state, account) {
+  if (!account) return state;
+  const hidden = getDismissed(account.username);
+  const requests = state.requests || [];
+  return Object.assign({}, state, {
+    partners: orderPartners(state.partners || [], getPartnerOrder(account.username)),
+    requests: requests.filter(n => !hidden.includes(n.toLowerCase())),
+    dismissed: requests.filter(n => hidden.includes(n.toLowerCase())),
+  });
+}
+
+// The partner order after moving one name up (-1) or down (+1).
+function movedOrder(names, name, delta) {
+  const list = names.map(n => n.toLowerCase());
+  const i = list.indexOf(name.toLowerCase()), j = i + delta;
+  if (i !== -1 && j >= 0 && j < list.length) [list[i], list[j]] = [list[j], list[i]];
+  return list;
+}
 
 function mutualPartners(syncState) {
   return ((syncState && syncState.partners) || [])
@@ -418,23 +442,42 @@ async function whileWaiting(button, work) {
   }
 }
 
-function accountSection(account, syncState) {
+function requestsDetail(n) {
+  if (!n) return 'No requests right now';
+  return n === 1 ? '1 person added you' : `${n} people added you`;
+}
+
+function partnerRow(p, i, count, ordering) {
+  if (ordering) {
+    const move = (dir, label, off) => h('button', { type: 'button', class: 'icon-btn', dataset: { move: dir, name: p.username },
+      'aria-label': `Move ${p.username} ${label}`, disabled: off }, icon(dir));
+    return h('li', { class: 'ordering' }, h('span', { class: 'name', text: p.username }),
+      h('span', { class: 'move' }, move('up', 'up', i === 0), move('down', 'down', i === count - 1)));
+  }
+  return h('li', null,
+    h('span', { class: 'name', text: p.username }),
+    h('span', { class: 'muted', text: p.status === 'mutual' ? 'Reading together' : 'Waiting for them to add you' }),
+    waitButton({ type: 'button', class: 'text-btn', dataset: { remove: p.username }, text: 'Remove' }, `remove:${p.username}`, 'Removing'));
+}
+
+function accountSection(account, syncState, ordering = false) {
   if (account) {
-    const partners = (syncState.partners || []).map(p => h('li', null,
-      h('span', { class: 'name', text: p.username }),
-      h('span', { class: 'muted', text: p.status === 'mutual' ? 'Reading together' : 'Waiting for them to add you' }),
-      waitButton({ type: 'button', class: 'text-btn', dataset: { remove: p.username }, text: 'Remove' }, `remove:${p.username}`, 'Removing')));
-    const requests = (syncState.requests || []).map(name => h('li', null,
-      h('span', { class: 'name', text: name }), h('span', { class: 'muted', text: 'added you' }),
-      waitButton({ type: 'button', class: 'btn', dataset: { addback: name }, text: 'Add back' }, `addback:${name}`, 'Adding')));
+    const list = syncState.partners || [];
+    const partners = list.map((p, i) => partnerRow(p, i, list.length, ordering));
+    const orderControl = list.length < 2 ? null : ordering
+      ? h('div', { class: 'order-actions' }, h('button', { type: 'button', class: 'btn primary reorder-done', text: 'Done' }))
+      : h('div', { class: 'order-actions' }, h('button', { type: 'button', class: 'text-btn reorder-start', text: 'Change order' }));
     return [
       h('section', null, h('h2', { text: 'Your account' }), h('p', null, 'Signed in as ', h('b', { text: account.username }))),
       h('section', null, h('h2', { text: 'Reading partners' }),
-        h('p', { class: 'muted', text: "You see each other's checkmarks once you've both added each other." }),
-        syncState.loading ? h('p', { class: 'loading', role: 'status' },
-          partners.length || requests.length ? 'Checking for updates' : 'Loading reading partners', waitMark()) : null,
-        partners.length || requests.length ? h('ul', { class: 'people' }, requests, partners) : null,
-        h('form', { class: 'add-partner' }, field('Add a partner', 'partner', { placeholder: 'Their username', required: true }),
+        h('p', { class: 'muted', text: ordering ? 'Partners show in this order across the app, on this phone.' : "You see each other's checkmarks once you've both added each other." }),
+        syncState.loading && !ordering ? h('p', { class: 'loading', role: 'status' },
+          partners.length ? 'Checking for updates' : 'Loading reading partners', waitMark()) : null,
+        partners.length ? h('ul', { class: 'people' }, partners) : null,
+        orderControl,
+        ordering ? null : h('nav', { class: 'requests-menu', 'aria-label': 'Partner requests' },
+          extrasRow('#/requests', 'Partner requests', requestsDetail((syncState.requests || []).length))),
+        ordering ? null : h('form', { class: 'add-partner' }, field('Add a partner', 'partner', { placeholder: 'Their username', required: true }),
           waitButton({ class: 'btn', type: 'submit', text: 'Add' }, 'addPartner', 'Adding'), h('p', { class: 'error', role: 'alert' }))),
       h('section', null,
         hasPending() ? h('p', { class: 'muted', text: "Some checkmarks haven't synced yet. Signing out now removes them from this phone." }) : null,
@@ -488,12 +531,12 @@ function catchMeUpSection(behind, confirming) {
     body);
 }
 
-function renderAccount(settings, account, syncState, behind = 0, confirming = false) {
+function renderAccount(settings, account, syncState, behind = 0, confirming = false, ordering = false) {
   const standalone = typeof matchMedia === 'function' && matchMedia('(display-mode: standalone)').matches;
   return h('div', { class: 'screen' },
     h('header', null, topBar(syncState), h('h1', { text: 'Account and settings' })),
     h('main', { class: 'account' },
-      syncEnabled() ? accountSection(account, syncState) : null,
+      syncEnabled() ? accountSection(account, syncState, ordering) : null,
       h('section', null, h('h2', { text: 'Settings' }),
         h('label', { class: 'check-field' }, h('input', { type: 'checkbox', name: 'hideBehind', checked: settings.hideBehind }),
           h('span', { text: 'Hide how far behind I am' })),
@@ -528,8 +571,36 @@ async function shareApp(button, nav = navigator, loc = location) {
   }
 }
 
-function backLink() {
-  return h('a', { class: 'back', href: '#/extras' }, icon('prev'), 'Extras');
+function backLink(href = '#/extras', label = 'Extras') {
+  return h('a', { class: 'back', href }, icon('prev'), label);
+}
+
+/* ---------- Partner requests (from the Account page) ----------
+   People who added you but you haven't added back. Dismissing one hides
+   it on this phone only; they aren't told, and still see "Waiting for
+   them to add you". */
+function renderRequests(account, syncState) {
+  const requests = syncState.requests || [];
+  const dismissed = syncState.dismissed || [];
+  const main = h('main', { class: 'requests' });
+  if (!account) {
+    append(main, h('p', { class: 'muted intro', text: 'Sign in on the Account tab to see who has added you as a reading partner.' }));
+  } else {
+    append(main,
+      h('p', { class: 'muted intro', text: 'These people added you as a reading partner. Add them back to see each other’s checkmarks.' }),
+      syncState.loading ? h('p', { class: 'loading', role: 'status' }, 'Checking for requests', waitMark()) : null,
+      requests.length ? h('ul', { class: 'people' }, requests.map(name => h('li', null,
+        h('span', { class: 'name', text: name }), h('span', { class: 'muted', text: 'added you' }),
+        h('span', { class: 'request-actions' },
+          h('button', { type: 'button', class: 'text-btn', dataset: { dismiss: name }, text: 'Dismiss' }),
+          waitButton({ type: 'button', class: 'btn', dataset: { addback: name }, text: 'Add back' }, `addback:${name}`, 'Adding')))))
+        : syncState.loading ? null : h('p', { class: 'empty', text: 'No one is waiting on you right now.' }),
+      dismissed.length ? h('p', { class: 'muted dismissed-note' }, `You dismissed ${plural(dismissed.length, 'request')}. `,
+        h('button', { type: 'button', class: 'text-btn undismiss', text: dismissed.length === 1 ? 'Show it again' : 'Show them again' })) : null);
+  }
+  return h('div', { class: 'screen' },
+    h('header', null, h('div', { class: 'bar' }, backLink('#/account', 'Account')), h('h1', { text: 'Partner requests' })),
+    main);
 }
 
 function extrasRow(href, title, detail) {
@@ -777,7 +848,7 @@ function renderPrint(year, now, settings = {}) {
 function tabBar(route, now) {
   const tabs = [['extras', '#/extras', 'Extras'], ['week', `#/week/${currentYear(now)}/${currentWeek(now)}`, 'Week'],
     ['today', '#/', 'Today'], ['plan', '#/plan', 'Plan'], ['account', '#/account', 'Account']];
-  const active = { catchup: 'today', print: 'extras', about: 'extras', gospel: 'extras', hear: 'extras', maps: 'extras' }[route.name] || route.name;
+  const active = { catchup: 'today', print: 'extras', about: 'extras', gospel: 'extras', hear: 'extras', maps: 'extras', requests: 'account' }[route.name] || route.name;
   return h('nav', { class: 'tabs', 'aria-label': 'Sections' }, tabs.map(([name, href, label]) =>
     h('a', { href, class: name === active ? 'on' : null, 'aria-current': name === active ? 'page' : null }, icon(name), label)));
 }
@@ -835,14 +906,15 @@ function render() {
   if (!app) return;
   const now = appNow(location.search);
   const route = parseRoute(location.hash);
-  const progress = getProgress(), state = getSyncState();
+  const progress = getProgress(), state = shapePartners(getSyncState(), getAccount());
   const settings = Object.assign(getSettings(), { android: isAndroid(navigator.userAgent) });
   const screens = {
     today: () => renderToday(now, progress, settings, state),
     week: () => renderWeek(route.year || currentYear(now), route.week, now, progress, settings, state),
     plan: () => renderPlan(route.year || currentYear(now), now, progress, settings),
     catchup: () => renderCatchUp(now, progress, settings, state),
-    account: () => renderAccount(settings, getAccount(), state, catchUpDays(progress, now, tracksFor(settings)), confirmingCatchUp),
+    account: () => renderAccount(settings, getAccount(), state, catchUpDays(progress, now, tracksFor(settings)), confirmingCatchUp, reordering),
+    requests: () => renderRequests(getAccount(), state),
     extras: () => renderExtras(now),
     print: () => renderPrint(route.year || currentYear(now), now, settings),
     about: () => renderAbout(),
@@ -900,14 +972,25 @@ async function handleSubmit(form) {
     if (form.classList.contains('signup')) return signUp(data.username, data.pin);
     return addPartner(data.partner);
   });
+  if (res.ok && form.classList.contains('add-partner') && getAccount()) forgetDismissed(getAccount().username, data.partner);
   if (res.ok) render();
   else showError(form, res);
 }
 
-// Opening the Account tab fetches fresh partners and requests.
+// Opening the Account tab or the requests page fetches fresh partners and requests.
 function screenOpened(name) {
-  if (name !== 'account' || !syncEnabled() || !getAccount()) return null;
+  if (!['account', 'requests'].includes(name) || !syncEnabled() || !getAccount()) return null;
   return syncNow();
+}
+
+// Move a partner up or down, save the order on this phone, and keep focus on the arrow pressed.
+function movePartner(account, name, dir) {
+  const names = shapePartners(getSyncState(), account).partners.map(p => p.username);
+  savePartnerOrder(account.username, movedOrder(names, name, dir === 'up' ? -1 : 1));
+  render();
+  const same = [...document.querySelectorAll('[data-move]')].find(b => b.dataset.name === name && b.dataset.move === dir);
+  const target = same && !same.disabled ? same : [...document.querySelectorAll('[data-move]')].find(b => b.dataset.name === name && !b.disabled);
+  if (target) target.focus();
 }
 
 function formFocused() {
@@ -926,6 +1009,14 @@ function boot() {
     if (remove) return whileWaiting(remove, () => removePartner(remove.dataset.remove)).then(render);
     const addBack = e.target.closest('[data-addback]');
     if (addBack) return whileWaiting(addBack, () => addPartner(addBack.dataset.addback)).then(render);
+    const account = getAccount();
+    if (e.target.closest('.reorder-start')) { reordering = true; return render(); }
+    if (e.target.closest('.reorder-done')) { reordering = false; return render(); }
+    const move = e.target.closest('[data-move]');
+    if (move && account) return movePartner(account, move.dataset.name, move.dataset.move);
+    const dismiss = e.target.closest('[data-dismiss]');
+    if (dismiss && account) { dismissRequest(account.username, dismiss.dataset.dismiss); return render(); }
+    if (e.target.closest('.undismiss') && account) { forgetDismissed(account.username); return render(); }
     const signout = e.target.closest('.signout');
     if (signout) return whileWaiting(signout, signOut).then(render);
     const share = e.target.closest('.share-app');
@@ -960,6 +1051,7 @@ function boot() {
 
   window.addEventListener('hashchange', () => {
     confirmingCatchUp = false;
+    reordering = false;
     render();
     window.scrollTo(0, 0);
     screenOpened(parseRoute(location.hash).name);

@@ -13,6 +13,8 @@ const KEYS = {
   pending: 'br27.pending',
   account: 'br27.account',
   settings: 'br27.settings',
+  partnerOrder: 'br27.partnerOrder', // { account: [partner, ...] }, lowercased
+  dismissed: 'br27.dismissed',       // { account: [requester, ...] }, lowercased
 };
 
 const DEFAULT_SETTINGS = { showLinks: true, hideBehind: false, ntOnly: false };
@@ -126,6 +128,54 @@ function saveAccount(a) {
 
 function clearAccount() {
   localStorage.removeItem(KEYS.account);
+}
+
+/* ---------- Partners, as this phone shows them ----------
+   The order of your partners and the partner requests you've dismissed
+   are kept on this phone only, per account (so someone else signing in
+   here has their own), and they stay through signing out. */
+
+function perAccount(key, account) {
+  const all = readJSON(key, {});
+  const list = isPlainObject(all) ? all[String(account).toLowerCase()] : null;
+  return Array.isArray(list) ? list.filter(n => typeof n === 'string') : [];
+}
+
+function savePerAccount(key, account, list) {
+  const all = readJSON(key, {});
+  const next = isPlainObject(all) ? all : {};
+  next[String(account).toLowerCase()] = list.map(n => String(n).toLowerCase());
+  writeJSON(key, next);
+}
+
+function getPartnerOrder(account) {
+  return perAccount(KEYS.partnerOrder, account);
+}
+
+function savePartnerOrder(account, names) {
+  savePerAccount(KEYS.partnerOrder, account, names);
+}
+
+// Partners in the saved order; anyone not in it yet (a new partner) goes at the end, as the server sent them.
+function orderPartners(partners, order) {
+  const at = p => { const i = order.indexOf(p.username.toLowerCase()); return i === -1 ? order.length : i; };
+  return partners.map((p, i) => [p, i]).sort((a, b) => at(a[0]) - at(b[0]) || a[1] - b[1]).map(([p]) => p);
+}
+
+function getDismissed(account) {
+  return perAccount(KEYS.dismissed, account);
+}
+
+function dismissRequest(account, name) {
+  const list = getDismissed(account);
+  if (!list.includes(name.toLowerCase())) list.push(name);
+  savePerAccount(KEYS.dismissed, account, list);
+}
+
+// Bring back one dismissed request, or (with no name) all of them.
+function forgetDismissed(account, name) {
+  const list = name ? getDismissed(account).filter(n => n !== name.toLowerCase()) : [];
+  savePerAccount(KEYS.dismissed, account, list);
 }
 
 // Back to a fresh, no-account phone. Settings (show online links) stay.

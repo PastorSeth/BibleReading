@@ -124,3 +124,36 @@ test('store: catch-up and day counts can look at the New Testament only', () => 
   assertEqual(weekDaysDone(ntDone, 2027, 1, ['nt']), 2);
   assertEqual(weekDaysDone(ntDone, 2027, 1), 0);
 });
+
+test('store: partner order is kept per account on this phone', () => withCleanStore(() => {
+  assertEqual(getPartnerOrder('Seth'), []);
+  savePartnerOrder('Seth', ['Mark', 'anna']);
+  assertEqual(getPartnerOrder('seth'), ['mark', 'anna']);
+  assertEqual(getPartnerOrder('Kim'), [], 'another account on this phone has its own');
+  const ps = [{ username: 'Anna' }, { username: 'Jo' }, { username: 'Mark' }];
+  assertEqual(orderPartners(ps, ['mark', 'anna']).map(p => p.username), ['Mark', 'Anna', 'Jo'], 'new partners go at the end');
+  assertEqual(orderPartners(ps, []).map(p => p.username), ['Anna', 'Jo', 'Mark']);
+  localStorage.setItem('br27.partnerOrder', '{oops');
+  assertEqual(getPartnerOrder('Seth'), []);
+}));
+
+test('store: dismissed requests are kept per account on this phone', () => withCleanStore(() => {
+  dismissRequest('Seth', 'Jo');
+  dismissRequest('Seth', 'jo');
+  assertEqual(getDismissed('seth'), ['jo']);
+  assertEqual(getDismissed('Kim'), []);
+  forgetDismissed('Seth', 'JO');
+  assertEqual(getDismissed('Seth'), []);
+  dismissRequest('Seth', 'Jo');
+  dismissRequest('Seth', 'Al');
+  forgetDismissed('Seth');
+  assertEqual(getDismissed('Seth'), [], 'with no name, all of them');
+}));
+
+test('store: signing out keeps the partner order and dismissals for next time', () => withCleanStore(() => {
+  savePartnerOrder('Seth', ['mark']);
+  dismissRequest('Seth', 'Jo');
+  resetLocal();
+  assertEqual(getPartnerOrder('Seth'), ['mark']);
+  assertEqual(getDismissed('Seth'), ['jo']);
+}));
