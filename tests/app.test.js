@@ -524,7 +524,10 @@ test('gospel: Extras links to it and the route opens it', () => {
 test('gospel: the page has the four parts, their verses, and the drawing', () => {
   const page = renderGospel();
   assertEqual(page.querySelector('h1').textContent, 'What is the Gospel?');
-  assertIncludes(page.querySelector('main').textContent, 'The Gospel is the good news of Jesus Christ.');
+  assertEqual([...page.querySelectorAll('main > p')].map(p => p.textContent), [
+    'The Gospel is the good news of Jesus Christ. This is the foundation of everything we believe as Christians.',
+    'Use this as a tool to study and grow in your understanding of the Gospel. Feel free to use it as a tool for evangelism as well!',
+  ]);
   assertEqual([...page.querySelectorAll('.bridge-part h2')].map(t => t.querySelector('.part-name').textContent), ['God', 'Man', 'Jesus', 'Response']);
   assertEqual([...page.querySelectorAll('.bridge-part h2 .part-n')].map(n => n.textContent), ['1 of 4', '2 of 4', '3 of 4', '4 of 4']);
   assertEqual([...page.querySelectorAll('.bridge-part blockquote cite')].map(c => c.textContent),

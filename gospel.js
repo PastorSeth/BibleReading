@@ -9,8 +9,8 @@
    ============================================================ */
 
 const GOSPEL_INTRO = [
-  'The Gospel is the good news of Jesus Christ. This Gospel is the foundation of everything we believe as Christians.',
-  'The Gospel is important to understand because others need to know this truth. But it’s just as important to understand because you also need to know it, and continue to grow in this knowledge.',
+  'The Gospel is the good news of Jesus Christ. This is the foundation of everything we believe as Christians.',
+  'Use this as a tool to study and grow in your understanding of the Gospel. Feel free to use it as a tool for evangelism as well!',
 ];
 
 const GOSPEL_PARTS = [
