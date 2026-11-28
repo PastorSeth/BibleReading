@@ -314,11 +314,11 @@ test('app: tab bar is Extras, Week, Today, Plan, Account', () => {
   assertEqual(tabBar({ name: 'about' }, new Date(2027, 0, 6)).querySelector('a.on').textContent, 'Extras');
 });
 
-test('app: extras is a menu that opens the Gospel, HEAR, MAPS, About and the printable plan', () => {
+test('app: extras is a menu: About and the printable plan first, then the Gospel, HEAR and MAPS', () => {
   const el = renderExtras(new Date(2027, 0, 6));
   const rows = [...el.querySelectorAll('a.extras-row')];
-  assertEqual(rows.map(a => a.querySelector('.row-title').textContent), ['The Gospel', 'HEAR Method for Bible Study', 'MAPS Method for Bible Study', 'About this reading plan', 'Printable plan']);
-  assertEqual(rows.map(a => a.getAttribute('href')), ['#/gospel', '#/hear', '#/maps', '#/about', '#/print/2027']);
+  assertEqual(rows.map(a => a.querySelector('.row-title').textContent), ['About this reading plan', 'Printable plan', 'The Gospel', 'HEAR Method for Bible Study', 'MAPS Method for Bible Study']);
+  assertEqual(rows.map(a => a.getAttribute('href')), ['#/about', '#/print/2027', '#/gospel', '#/hear', '#/maps']);
   assert(!el.textContent.includes('Replicate'), 'the about text lives on its own page now');
   assertEqual(el.querySelector('main h2').textContent, 'Share this app with a friend');
   assert(el.querySelector('button.share-app'), 'share button stays on Extras');
@@ -517,7 +517,6 @@ test('gospel: Extras links to it and the route opens it', () => {
   const row = extras.querySelector('a.extras-row[href="#/gospel"]');
   assert(row, 'a Gospel row in Extras');
   assertIncludes(row.textContent, 'The Gospel');
-  assertEqual(extras.querySelector('a.extras-row').getAttribute('href'), '#/gospel', 'it comes first');
   assertEqual(parseRoute('#/gospel'), { name: 'gospel' });
   assertEqual(tabBar({ name: 'gospel' }, new Date(2027, 0, 6)).querySelector('.on').textContent, 'Extras');
 });
